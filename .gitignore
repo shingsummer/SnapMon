@@ -1,0 +1,40 @@
+# 生成物（shared-config のコピー）
+functions/shared-config/
+app/assets/config/
+
+# Node
+node_modules/
+functions/lib/
+*.log
+.firebase/
+firebase-debug.log
+ui-debug.log
+
+# Flutter / Dart
+app/.dart_tool/
+app/.packages
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/pubspec.lock
+app/ios/Pods/
+app/ios/.symlinks/
+app/android/.gradle/
+app/android/local.properties
+
+# Firebase 設定（人間が配置。機密なので commit しない）
+app/android/app/google-services.json
+app/ios/Runner/GoogleService-Info.plist
+app/lib/firebase_options.dart
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
