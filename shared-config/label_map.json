@@ -1,0 +1,19 @@
+{
+  "_doc": "Cloud Vision の Label Detection ラベル（英語・小文字）→ ファミリー。企画書 v1.3 §3.2。該当なし・信頼度 0.3 未満・screen/monitor 上位は enigma。運営で随時追加。",
+  "families": ["beast", "plant", "metal", "aqua", "rock", "spark", "ghost", "food", "paper", "cloth", "toy", "enigma"],
+  "forceEnigmaLabels": ["screen", "monitor", "display device", "computer monitor", "television", "smartphone screen"],
+  "minConfidence": 0.3,
+  "labels": {
+    "dog": "beast", "cat": "beast", "stuffed toy": "beast", "plush": "beast", "fur": "beast", "animal": "beast", "bird": "beast",
+    "flower": "plant", "tree": "plant", "vegetable": "plant", "houseplant": "plant", "plant": "plant", "leaf": "plant", "grass": "plant",
+    "tool": "metal", "car": "metal", "key": "metal", "tin can": "metal", "metal": "metal", "bicycle": "metal", "scissors": "metal",
+    "bottle": "aqua", "water bottle": "aqua", "cup": "aqua", "mug": "aqua", "water": "aqua", "fish": "aqua", "glass": "aqua",
+    "rock": "rock", "stone": "rock", "building": "rock", "concrete": "rock", "brick": "rock", "wall": "rock",
+    "electronic device": "spark", "cable": "spark", "lighting": "spark", "lamp": "spark", "computer": "spark", "keyboard": "spark",
+    "doll": "ghost", "antique": "ghost", "mask": "ghost", "candle": "ghost",
+    "food": "food", "snack": "food", "fruit": "food", "bread": "food", "dessert": "food", "dish": "food",
+    "book": "paper", "document": "paper", "cardboard": "paper", "paper": "paper", "notebook": "paper", "envelope": "paper",
+    "clothing": "cloth", "shoe": "cloth", "textile": "cloth", "hat": "cloth", "bag": "cloth", "sock": "cloth",
+    "toy": "toy", "video game console": "toy", "figurine": "toy", "action figure": "toy", "lego": "toy", "ball": "toy"
+  }
+}

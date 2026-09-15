@@ -1,0 +1,80 @@
+{
+  "_doc": "SnapMon 定数表。企画書 v1.3 §16.2 が正。ここを変えたら python tools/gen_fixtures.py を実行し、企画書 §4.5 / §4.7 / §16.4 の表を更新すること。",
+
+  "snapsPerDay": 3,
+  "stepsPerVp": 100,
+  "maxStepsPerDay": 12000,
+  "maxVpBalance": 200,
+  "trainingCostVp": 10,
+  "trainingsPerDay": 8,
+  "maxStepsPerMinute": 220,
+  "friendBattlesPerDay": 10,
+  "friendBattleRewardsPerDay": 3,
+  "partnerChangesPerDay": 3,
+  "activeCapFree": 30,
+  "activeCapPremium": 100,
+
+  "levelCap": 50,
+  "statCapBase": 399,
+  "statCapPerTalent": 60,
+  "baseStatRange": [5, 60],
+  "talentRange": [1, 10],
+  "levelGainBase": 5.0,
+  "levelGainPerTalent": 0.9,
+  "levelGainRandRange": [0.8, 1.2],
+  "trainingGainRange": [2, 4],
+  "trainingGainPerTalent": 0.5,
+  "trainingSubRatio": 0.5,
+  "personalityTrainingBonus": 0.2,
+  "fatigueMax": 100,
+  "superlateSwitchLevel": 30,
+  "superlateCurveLow": 0.3,
+  "superlateCurveHigh": 2.56,
+
+  "growthTypeOrder": ["early", "avg", "late", "wave", "superlate"],
+  "growthTypeWeights": [
+    { "minBst0": 250, "weights": [0.50, 0.35, 0.10, 0.05, 0.00] },
+    { "minBst0": 150, "weights": [0.20, 0.45, 0.20, 0.10, 0.05] },
+    { "minBst0": 0,   "weights": [0.05, 0.25, 0.35, 0.15, 0.20] }
+  ],
+
+  "trainings": {
+    "_doc": "疲労量は企画書に数値がないため仮値（低=10 中=25 高=40）。βで調整。",
+    "dash":     { "main": "spd", "sub": "atk", "fatigue": 25 },
+    "labor":    { "main": "atk", "sub": "hp",  "fatigue": 40 },
+    "meditate": { "main": "spa", "sub": "luk", "fatigue": 10 },
+    "endure":   { "main": "def", "sub": "hp",  "fatigue": 40 }
+  },
+
+  "expBase": 20,
+  "expPerLevel": 4,
+  "expPerTraining": 15,
+  "expBattleWin": 20,
+  "expBattleLose": 8,
+  "expPerFood": 30,
+  "stepsPerPartnerExp": 100,
+  "maxPartnerExpPerDay": 120,
+
+  "mentorInheritRate": 0.3,
+  "mentorInheritRateCapsule": 0.5,
+  "fatigueCurePerDay": 1,
+
+  "murmurHintRateInWindow": 0.08,
+  "murmurHintRateOutOfWindow": 0.01,
+  "murmurWindowJitterLevels": 4,
+  "murmurRateRange": [0.5, 1.5],
+
+  "legacyMoveGenerations": 3,
+  "legacyMovePowerBonus": 0.10,
+  "phashRejectSimilarity": 0.9,
+  "faceDetectReject": true,
+
+  "artColorHueBuckets": 12,
+  "artColorLightnessBuckets": 3,
+  "artTintHueShiftMaxDeg": 8,
+  "artTintSatShiftMax": 0.10,
+
+  "gymRadiusM": 80,
+  "gymChallengesPerDay": 3,
+  "defenderAutoReturnHours": 24
+}

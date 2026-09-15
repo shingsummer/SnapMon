@@ -1,0 +1,17 @@
+{
+  "_doc": "技テーブル。企画書 v1.3 §6.2 の尺度（power 190〜250 で HP の 15〜20%）。日本語名は未決（§15.5）。P4 で全ファミリー6技 × 属性4技を埋める。ここでは骨組みとして各分類の代表を置く。",
+  "categories": ["physical", "special", "support"],
+  "moves": [
+    { "id": "beast_bite",    "name": "かみつき",   "family": "beast",  "element": null,    "category": "physical", "power": 200, "effect": null },
+    { "id": "beast_rush",    "name": "とっしん",   "family": "beast",  "element": null,    "category": "physical", "power": 240, "effect": { "selfDamageRatio": 0.1 } },
+    { "id": "plant_heal",    "name": "こうごうせい", "family": "plant",  "element": null,    "category": "support",  "power": 0,   "effect": { "healRatio": 0.25 } },
+    { "id": "metal_guard",   "name": "てっぺき",   "family": "metal",  "element": null,    "category": "support",  "power": 0,   "effect": { "defStages": 1 } },
+    { "id": "fire_burst",    "name": "ほのお",     "family": null,     "element": "fire",  "category": "special",  "power": 210, "effect": null },
+    { "id": "water_shot",    "name": "みずでっぽう", "family": null,     "element": "water", "category": "special",  "power": 210, "effect": null },
+    { "id": "grass_whip",    "name": "つるのムチ", "family": null,     "element": "grass", "category": "physical", "power": 210, "effect": null },
+    { "id": "thunder_spark", "name": "スパーク",   "family": null,     "element": "thunder", "category": "special", "power": 210, "effect": null },
+    { "id": "light_ray",     "name": "ひかり",     "family": null,     "element": "light", "category": "special",  "power": 210, "effect": null },
+    { "id": "dark_veil",     "name": "やみ",       "family": null,     "element": "dark",  "category": "special",  "power": 210, "effect": null },
+    { "id": "neutral_tackle", "name": "たいあたり", "family": null,     "element": "neutral", "category": "physical", "power": 190, "effect": null }
+  ]
+}
