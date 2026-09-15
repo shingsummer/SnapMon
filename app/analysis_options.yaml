@@ -1,0 +1,11 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # domain/ は Flutter 非依存の純 Dart（企画書 §15.3）
+    avoid_print: warning
+
+linter:
+  rules:
+    prefer_single_quotes: true
+    always_declare_return_types: true

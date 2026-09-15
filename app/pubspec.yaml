@@ -1,0 +1,29 @@
+name: snapmon
+description: 写真で生まれ、歩いて育つ、育成バトルRPG
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  crypto: ^3.0.5
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.0
+  # P0 で追加: firebase_core, firebase_auth, firebase_app_check, cloud_functions
+  # P1 で追加: camera, image, exif, google_mlkit_face_detection
+  # P2 で追加: pedometer, health, drift
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  # shared-config は tool/copy_config.sh で assets/config/ にコピーする（生成物、git 管理外）
+  assets:
+    - assets/config/
