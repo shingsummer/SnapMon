@@ -60,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SnapMon'),
+        title: GestureDetector(onLongPress: () => context.push('/admin'), child: const Text('SnapMon')),
         actions: [
           IconButton(key: const Key('ranch'), tooltip: '牧場', icon: const Icon(Icons.grass), onPressed: () => context.push('/ranch')),
           IconButton(

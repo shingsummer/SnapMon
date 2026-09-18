@@ -42,3 +42,6 @@ Thumbs.db
 
 # Kotlin ビルドセッション
 app/android/.kotlin/
+
+# Functions エミュレータの Secret 上書き（機密になり得るので commit しない）
+functions/.secret.local

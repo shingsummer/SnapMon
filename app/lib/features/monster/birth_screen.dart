@@ -68,7 +68,9 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
               scale: CurvedAnimation(parent: _reveal, curve: Curves.elasticOut),
               child: FadeTransition(
                 opacity: _reveal,
-                child: FamilyArt(family: family, element: element, size: 220),
+                child: monster == null
+                    ? FamilyArt(family: family, element: element, size: 220)
+                    : MonsterArt(monster: monster, size: 220, showPendingBadge: true),
               ),
             ),
           ),

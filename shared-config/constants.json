@@ -153,6 +153,17 @@
   "artColorLightnessBuckets": 3,
   "artTintHueShiftMaxDeg": 8,
   "artTintSatShiftMax": 0.1,
+  "artImageSize": "1024x1024",
+  "artQuality": "medium",
+  "artCostUsd": {
+    "_doc": "gpt-image 系 1024x1024 の目安単価（USD）。P3 完了条件の実測で更新する",
+    "low": 0.011,
+    "medium": 0.042,
+    "high": 0.167
+  },
+  "artMaxAttempts": 3,
+  "artCustomQuality": "high",
+  "artCustomImageSize": "1024x1024",
   "gymRadiusM": 80,
   "gymChallengesPerDay": 3,
   "defenderAutoReturnHours": 24

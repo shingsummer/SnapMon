@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 /// Functions のリージョン（functions/src/index.ts の setGlobalOptions と一致させる）
@@ -17,5 +18,6 @@ void configureEmulatorsIfNeeded() {
   final host = defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost';
   functions().useFunctionsEmulator(host, 5001);
   FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+  FirebaseStorage.instance.useStorageEmulator(host, 9199);
   debugPrint('[SnapMon] using Firebase emulators at $host');
 }

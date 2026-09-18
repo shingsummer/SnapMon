@@ -39,6 +39,14 @@ const trainingJa = <String, ({String name, String main, String sub, String fatig
 Map<String, int> _intStats(Map<dynamic, dynamic>? m) =>
     {for (final s in statOrder) s: ((m?[s] as num?) ?? 0).round()};
 
+/// 端末側で適用する個体差（企画書 §3.6）
+class ArtTint {
+  const ArtTint({required this.hueShift, required this.satShift});
+  final int hueShift; // 度（±8）
+  final double satShift; // ±0.1
+  static const none = ArtTint(hueShift: 0, satShift: 0);
+}
+
 class StatSnapshot {
   StatSnapshot(this.level, this.stats);
   final int level;
@@ -62,6 +70,7 @@ class Monster {
     required this.statHistory,
     required this.moves,
     required this.artBucketId,
+    required this.artTint,
     required this.status,
     required this.fatigue,
     required this.personality,
@@ -86,6 +95,7 @@ class Monster {
   final List<StatSnapshot> statHistory;
   final List<String> moves;
   final String artBucketId;
+  final ArtTint artTint;
   final String status;
   final int fatigue;
   final int personality;
@@ -127,6 +137,12 @@ class Monster {
       statHistory: hist,
       moves: ((d['moves'] as List?) ?? const []).cast<String>(),
       artBucketId: (d['artBucketId'] as String?) ?? '',
+      artTint: d['artTint'] is Map
+          ? ArtTint(
+              hueShift: (((d['artTint'] as Map)['hueShift'] as num?) ?? 0).toInt(),
+              satShift: (((d['artTint'] as Map)['satShift'] as num?) ?? 0).toDouble(),
+            )
+          : ArtTint.none,
       status: (d['status'] as String?) ?? 'active',
       fatigue: ((d['fatigue'] as num?) ?? 0).toInt(),
       personality: ((d['personality'] as num?) ?? 0).toInt(),

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/admin/admin_screen.dart';
 import '../features/auth/auth_provider.dart';
 import '../features/auth/login_screen.dart';
 import '../features/camera/camera_screen.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const ranch = '/ranch'; // S06
   static const monster = '/monster/:id'; // S07
   static const train = '/train/:id'; // S08
+  static const admin = '/admin'; // 管理者のみ（サーバー側で判定）
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -48,6 +50,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.ranch, builder: (_, __) => const RanchScreen()),
       GoRoute(path: AppRoutes.monster, builder: (_, state) => MonsterDetailScreen(monsterId: state.pathParameters['id']!)),
       GoRoute(path: AppRoutes.train, builder: (_, state) => TrainingScreen(monsterId: state.pathParameters['id']!)),
+      GoRoute(path: AppRoutes.admin, builder: (_, __) => const AdminScreen()),
     ],
   );
 });
