@@ -48,6 +48,7 @@ export interface GenerateResult {
   artBucketId: string;
   artTint: { hueShift: number; satShift: number };
   artReady: boolean;
+  artStatus: string; // awaiting_source | pending | fallback
   items: ItemGrant[];
   snapsUsed: number;
   snapsPerDay: number;
@@ -174,6 +175,10 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
       artBucketId: bucket,
       artTint: tint,
       customArtPath: null,
+      // 個体アート（写真参照）: 写真の保存が終わったら pending → トリガーが生成
+      artStatus: (C.artIndividualEnabled as boolean) && deps.saveSource ? "awaiting_source" : "fallback",
+      artImagePath: null,
+      artAttempts: 0,
       level: 1,
       exp: 0,
       base: ind.base,
@@ -245,6 +250,7 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
       artBucketId: bucket,
       artTint: tint,
       artReady,
+      artStatus: (C.artIndividualEnabled as boolean) && deps.saveSource ? "awaiting_source" : "fallback",
       items,
       snapsUsed: snapsUsed + 1,
       snapsPerDay,
@@ -256,9 +262,10 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
   if (deps.saveSource) {
     try {
       const p = await deps.saveSource(uid, result.monsterId, image);
-      await monsterRef.update({ sourceImagePath: p });
+      await monsterRef.update({ sourceImagePath: p, ...((C.artIndividualEnabled as boolean) ? { artStatus: "pending" } : {}) });
     } catch (e) {
       console.warn("saveSource failed", (e as Error).message);
+      await monsterRef.update({ artStatus: "fallback" });
     }
   }
   return result;

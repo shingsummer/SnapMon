@@ -164,6 +164,10 @@
   "artMaxAttempts": 3,
   "artCustomQuality": "high",
   "artCustomImageSize": "1024x1024",
+  "artIndividualEnabled": true,
+  "artIndividualQuality": "low",
+  "artIndividualInputFidelity": "low",
+  "artIndividualMaxAttempts": 2,
   "gymRadiusM": 80,
   "gymChallengesPerDay": 3,
   "defenderAutoReturnHours": 24

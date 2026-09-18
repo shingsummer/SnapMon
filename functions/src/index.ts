@@ -4,12 +4,13 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { setGlobalOptions } from "firebase-functions/v2";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentWritten } from "firebase-functions/v2/firestore";
 import { defineSecret, defineString } from "firebase-functions/params";
 import { HttpsError, onCall, type CallableRequest, type FunctionsErrorCode } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { artStats, enqueuePregeneration, processArtBucket, type ArtDeps } from "./art/artBucket";
-import { FakeImageGenerator, OpenAIImageGenerator, type ImageGenerator } from "./art/generator";
+import { FakeImageGenerator, OpenAIImageGenerator, type ArtQuality, type ImageGenerator } from "./art/generator";
+import { generateArtSamples, processMonsterArt, type IndividualDeps } from "./art/individual";
 import { loadConfig } from "./shared/config";
 import { GenerateError, generateMonsterCore } from "./generate/generateMonster";
 import { computePhash } from "./generate/phash";
@@ -288,4 +289,66 @@ export const getArtStats = onCall({ enforceAppCheck: !IS_EMULATOR }, async (requ
   const uid = requireUid(request);
   if (!isAdmin(uid)) throw new HttpsError("permission-denied", "admin only");
   return { ok: true, data: await artStats(getFirestore()) };
+});
+
+// ---------------------------------------------------------------- 個体アート（写真参照）
+function individualDeps(): IndividualDeps {
+  return {
+    ...artDeps(),
+    loadImage: async (path) => {
+      const [buf] = await getStorage().bucket().file(path).download();
+      return buf;
+    },
+  };
+}
+
+/** monsters の artStatus が pending になったら（写真保存後）個体アートを生成 */
+export const onMonsterArtRequested = onDocumentWritten(
+  { document: "monsters/{monsterId}", secrets: [OPENAI_API_KEY], memory: "512MiB", timeoutSeconds: 180, retry: false },
+  async (event) => {
+    const before = event.data?.before.get("artStatus") as string | undefined;
+    const after = event.data?.after.get("artStatus") as string | undefined;
+    if (after !== "pending" || before === "pending") return;
+    const monsterId = event.params.monsterId;
+    try {
+      const r = await processMonsterArt(individualDeps(), monsterId);
+      console.log("monster art", monsterId, r.outcome, r.costUsd ?? "", r.error ?? "");
+    } catch (e) {
+      console.error("monster art failed", monsterId, e);
+    }
+  },
+);
+
+/** 失敗した個体アートの再試行（オーナー） */
+export const retryMonsterArt = onCall({ enforceAppCheck: !IS_EMULATOR, secrets: [OPENAI_API_KEY], memory: "512MiB", timeoutSeconds: 180 }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(MonsterIdInput, request.data);
+  const snap = await getFirestore().collection("monsters").doc(input.monsterId).get();
+  if (!snap.exists || (snap.get("ownerId") !== uid && !isAdmin(uid))) throw new HttpsError("permission-denied", "自分のモンスターではありません");
+  if (snap.get("artStatus") === "failed" || snap.get("artStatus") === "fallback") {
+    await snap.ref.update({ artStatus: "failed", artAttempts: 0 });
+  }
+  return { ok: true, data: await processMonsterArt(individualDeps(), input.monsterId) };
+});
+
+/** 管理者: 同じ写真から品質違いのサンプルを作る（絵柄・コスト比較用） */
+const SamplesInput = z.object({ monsterId: z.string().max(64).optional(), qualities: z.array(z.enum(["low", "medium", "high"])).min(1).max(3) });
+
+export const generateArtSamplesFn = onCall({ enforceAppCheck: !IS_EMULATOR, secrets: [OPENAI_API_KEY], memory: "512MiB", timeoutSeconds: 300 }, async (request) => {
+  const uid = requireUid(request);
+  if (!isAdmin(uid)) throw new HttpsError("permission-denied", "admin only");
+  const input = parse(SamplesInput, request.data);
+  let monsterId = input.monsterId?.trim() || "";
+  if (!monsterId) {
+    // 未指定なら、自分の最新の「写真付き」個体を使う
+    const q = await getFirestore().collection("monsters").where("ownerId", "==", uid).orderBy("createdAt", "desc").limit(10).get();
+    const hit = q.docs.find((d) => d.get("sourceImagePath"));
+    if (!hit) throw new HttpsError("failed-precondition", "写真付きのモンスターがありません（先に1枚撮ってください）");
+    monsterId = hit.id;
+  }
+  try {
+    return { ok: true, data: { monsterId, ...(await generateArtSamples(individualDeps(), monsterId, input.qualities as ArtQuality[])) } };
+  } catch (e) {
+    throw new HttpsError("failed-precondition", (e as Error).message);
+  }
 });

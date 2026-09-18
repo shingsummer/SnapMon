@@ -71,6 +71,8 @@ class Monster {
     required this.moves,
     required this.artBucketId,
     required this.artTint,
+    required this.artStatus,
+    required this.artImagePath,
     required this.status,
     required this.fatigue,
     required this.personality,
@@ -96,6 +98,8 @@ class Monster {
   final List<String> moves;
   final String artBucketId;
   final ArtTint artTint;
+  final String artStatus; // awaiting_source | pending | generating | ready | failed | fallback
+  final String? artImagePath;
   final String status;
   final int fatigue;
   final int personality;
@@ -113,6 +117,9 @@ class Monster {
   String get elementLabel => elementJa[element] ?? element;
   int get total => stats.values.fold(0, (a, b) => a + b);
   bool get isStored => status == 'stored';
+  bool get hasIndividualArt => artStatus == 'ready' && artImagePath != null;
+  /// 写真参照の絵を待っている（卵表示）
+  bool get isHatching => artStatus == 'awaiting_source' || artStatus == 'pending' || artStatus == 'generating';
 
   /// P3 のアートバケットが ready になるまでのプレースホルダ（tools/gen_placeholder_art.py）
   String get placeholderAsset => 'assets/art/placeholder/${family}_$element.svg';
@@ -143,6 +150,8 @@ class Monster {
               satShift: (((d['artTint'] as Map)['satShift'] as num?) ?? 0).toDouble(),
             )
           : ArtTint.none,
+      artStatus: (d['artStatus'] as String?) ?? 'fallback',
+      artImagePath: d['artImagePath'] as String?,
       status: (d['status'] as String?) ?? 'active',
       fatigue: ((d['fatigue'] as num?) ?? 0).toInt(),
       personality: ((d['personality'] as num?) ?? 0).toInt(),

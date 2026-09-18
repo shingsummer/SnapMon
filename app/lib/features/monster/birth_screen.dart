@@ -59,7 +59,7 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
     final familyLabel = monster?.familyLabel ?? (familyJa[family] ?? family);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('生まれた！'), automaticallyImplyLeading: false),
+      appBar: AppBar(title: Text(monster != null && monster.isHatching ? '卵が…' : '生まれた！'), automaticallyImplyLeading: false),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -74,6 +74,11 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
               ),
             ),
           ),
+          if (monster != null && monster.isHatching)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('撮った写真から、この子だけの姿を描いています（30〜60 秒）', textAlign: TextAlign.center, style: theme.textTheme.bodySmall),
+            ),
           const SizedBox(height: 16),
           Center(
             child: Wrap(

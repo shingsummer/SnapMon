@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { FakeImageGenerator } from "../src/art/generator";
 import { buildArtPrompt, bucketToHex, hslToHex, paletteFromHex } from "../src/art/prompt";
 import { pregenerationBucketIds } from "../src/art/artBucket";
+import { buildIndividualPrompt } from "../src/art/individual";
+import { Jimp } from "jimp";
 import { hexToHsl } from "../src/generate/classify";
 
 describe("art prompt", () => {
@@ -59,5 +61,23 @@ describe("FakeImageGenerator", () => {
     expect(r.png.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
     expect(r.costUsd).toBe(0);
     expect(r.model).toBe("fake");
+  });
+});
+
+describe("individual art", () => {
+  it("prompt references the photo and keeps positive phrasing", () => {
+    const p = buildIndividualPrompt({ family: "aqua", subFamily: null, element: "water", colors: ["1e88e5", "ffffff", "37474f"], sourceLabel: "mug" });
+    expect(p).toContain("reference photo");
+    expect(p).toContain("the object is: mug");
+    expect(p).toContain("#1e88e5, #ffffff, #37474f");
+    expect(p).not.toMatch(/Do not/);
+  });
+  it("FakeImageGenerator.generateFromImage tints by the photo's average color", async () => {
+    const src = await new Jimp({ width: 16, height: 16, color: 0x2040ffff }).getBuffer("image/png");
+    const r = await new FakeImageGenerator().generateFromImage("x", src, { size: "32x32", quality: "low" });
+    const out = await Jimp.read(r.png);
+    const c = out.getPixelColor(16, 16);
+    expect((c >>> 8) & 0xff).toBeGreaterThan(200); // 青が強い
+    expect(r.costUsd).toBe(0);
   });
 });

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../monster/monster_repository.dart';
 import 'image_prep.dart';
@@ -64,19 +65,31 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
   Future<void> _shoot() async {
     final controller = _controller;
     if (controller == null || _phase != _Phase.ready) return;
+    final shot = await controller.takePicture();
+    await _process(shot.path);
+  }
+
+  /// 開発用: 端末内の画像を「撮った写真」として使う（エミュレータは同じ部屋しか撮れないため）
+  Future<void> _pickFromGallery() async {
+    if (_phase != _Phase.ready && _phase != _Phase.noCamera) return;
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 2048);
+    if (picked == null) return;
+    await _process(picked.path);
+  }
+
+  Future<void> _process(String path) async {
     setState(() {
       _error = null;
       _phase = _Phase.checkingFace;
     });
     try {
-      final shot = await controller.takePicture();
-      final faces = await ref.read(faceCheckerProvider).countFaces(shot.path);
+      final faces = await ref.read(faceCheckerProvider).countFaces(path);
       if (faces > 0) {
         _fail('人の顔が写っています。物だけを撮ってください（撮影枠は減りません）');
         return;
       }
       setState(() => _phase = _Phase.generating);
-      final raw = await File(shot.path).readAsBytes();
+      final raw = await File(path).readAsBytes();
       final jpeg = await compute(prepareImage, raw);
       final result = await ref.read(monsterApiProvider).generate(jpeg);
       if (!mounted) return;
@@ -163,6 +176,17 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (kDebugMode) ...[
+                IconButton(
+                  key: const Key('pick-image'),
+                  tooltip: '画像を選ぶ（開発用）',
+                  color: Colors.white,
+                  iconSize: 32,
+                  onPressed: busy ? null : _pickFromGallery,
+                  icon: const Icon(Icons.photo_library),
+                ),
+                const SizedBox(width: 24),
+              ],
               SizedBox(
                 width: 76,
                 height: 76,
@@ -173,6 +197,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
                   child: const Icon(Icons.camera, size: 36),
                 ),
               ),
+              if (kDebugMode) const SizedBox(width: 80),
             ],
           ),
         ),

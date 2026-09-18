@@ -47,6 +47,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // 絵柄比較サンプル（管理者が作る）。読むだけならサインイン済みで可
+    match /art_samples/{monsterId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     // 歩数区間: 本人のみ読める。投入は submitSteps 経由
     match /steps/{userId}/segments/{segmentId} {
       allow read: if isOwner(userId);
