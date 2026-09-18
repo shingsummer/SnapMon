@@ -163,7 +163,7 @@
   "murmurPlainRate": 0.25,
   "legacyMoveGenerations": 3,
   "legacyMovePowerBonus": 0.1,
-  "phashRejectSimilarity": 0.9,
+  "phashRejectSimilarity": 0.95,
   "faceDetectReject": true,
   "artColorHueBuckets": 12,
   "artColorLightnessBuckets": 3,

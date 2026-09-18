@@ -467,7 +467,7 @@ v1 でフレンド戦に報酬を付けるのは、v1.2 の「名誉のみ」だ
 |---|---|
 | 歩数偽装（振り機） | 220歩/分 超の区間無効、アクティビティ認識が `stationary` の区間は無効 |
 | 端末時計操作 | すべての日付判定はサーバー時刻 |
-| 写真の使い回し | 画像ハッシュ（pHash）を保存し、同一ユーザーの過去写真と 90% 以上一致なら生成拒否（枠は消費しない） |
+| 写真の使い回し | 画像ハッシュ（pHash）を保存し、同一ユーザーの過去写真と 95% 以上一致（64bit 中 3bit 差以内）なら生成拒否（枠は消費しない）。90% では同じ机の別の物まで弾いたため引き上げ |
 | ステータス改ざん | ステータス・乱数はすべてサーバー生成、クライアントは表示のみ |
 | API直叩き | Firebase App Check（iOS: DeviceCheck / Android: Play Integrity）必須 |
 | つぶやきの統計推定 | つぶやき専用 API を持たない（§4.6-5）。実イベントの副産物としてのみ返す |
@@ -872,7 +872,7 @@ serverNonce により同一条件でも予測不能。ただし種族・属性�
   "murmurRateRange": [0.5, 1.5],
   "legacyMoveGenerations": 3,
   "legacyMovePowerBonus": 0.10,
-  "phashRejectSimilarity": 0.9,
+  "phashRejectSimilarity": 0.95,
   "faceDetectReject": true,
   "artColorHueBuckets": 12,
   "artColorLightnessBuckets": 3,

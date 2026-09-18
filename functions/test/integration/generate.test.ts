@@ -139,8 +139,8 @@ describe("generateMonsterCore", () => {
     const ha2 = await computePhash(await a.getBuffer("image/jpeg"));
     const hb = await computePhash(await a.clone().invert().getBuffer("image/png"));
     expect(ha).toMatch(/^[0-9a-f]{16}$/);
-    expect(hammingSimilarity(ha, ha2)).toBeGreaterThanOrEqual(0.9); // 再エンコードしても同一判定
-    expect(hammingSimilarity(ha, hb)).toBeLessThan(0.9); // 明暗反転は別物
+    expect(hammingSimilarity(ha, ha2)).toBeGreaterThanOrEqual(0.95); // 再エンコードしても同一判定
+    expect(hammingSimilarity(ha, hb)).toBeLessThan(0.95); // 明暗反転は別物
   });
 
   it("hammingSimilarity", () => {

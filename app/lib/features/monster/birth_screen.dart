@@ -30,6 +30,12 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
     super.dispose();
   }
 
+  /// ホームを土台にして詳細を積む（端末の戻るでアプリが終了しないように）
+  void _openDetail() {
+    context.go('/home');
+    context.push('/monster/${widget.monsterId}');
+  }
+
   Future<void> _submit() async {
     setState(() {
       _saving = true;
@@ -38,7 +44,7 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
     try {
       await ref.read(monsterApiProvider).rename(widget.monsterId, _nameCtrl.text);
       if (!mounted) return;
-      context.go('/monster/${widget.monsterId}');
+      _openDetail();
     } on MonsterApiException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
@@ -121,7 +127,7 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
             child: _saving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('けってい'),
           ),
           TextButton(
-            onPressed: _saving ? null : () => context.go('/monster/${widget.monsterId}'),
+            onPressed: _saving ? null : _openDetail,
             child: const Text('あとでつける'),
           ),
           if (r != null) ...[
