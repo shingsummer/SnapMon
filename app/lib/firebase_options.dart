@@ -56,13 +56,14 @@ class DefaultFirebaseOptions {
     projectId: 'snap-mon-7a9bf',
     storageBucket: 'snap-mon-7a9bf.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAh5qM9s1Fh5dE72_cG2zPjKcByczcO2Gc',
     appId: '1:750183162731:ios:cc85e5b867980b9685622e',
     messagingSenderId: '750183162731',
     projectId: 'snap-mon-7a9bf',
     storageBucket: 'snap-mon-7a9bf.firebasestorage.app',
+    androidClientId: '750183162731-li0mhif34dfema33nk3v1dp9n8pb2tb9.apps.googleusercontent.com',
+    iosClientId: '750183162731-7ne2mst8p69bud35qph2i6smoa2m013e.apps.googleusercontent.com',
     iosBundleId: 'jp.shipi.snapmon',
   );
 }
