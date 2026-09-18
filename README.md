@@ -77,4 +77,14 @@ cd app && bash tool/copy_config.sh && flutter run
 
 ## 開発フェーズ
 
-企画書 §13。P0 完了（2026-09-18）。現在: **P1 誕生**（サーバー・アプリ実装済み。エミュレータでの通し確認と Vision API 有効化が残り）。
+企画書 §13。P0 完了（2026-09-18）。現在: **P1 誕生**（本番 Functions デプロイ済み、エミュレータから本番 Vision API で誕生を確認。実機での撮影確認と Health Connect 用途申告が残り）。
+
+### デプロイ
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes --project snap-mon-7a9bf
+cd functions && npm test && cd .. && firebase deploy --only functions --project snap-mon-7a9bf
+firebase deploy --only storage --project snap-mon-7a9bf   # Storage を「始める」してから
+```
+
+デプロイ直後は Cloud Run の呼び出し権限の反映に 1〜2 分かかり、その間は callable が UNAUTHENTICATED を返す。
