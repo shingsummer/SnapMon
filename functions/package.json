@@ -4,19 +4,24 @@
   "private": true,
   "description": "SnapMon Cloud Functions (server-authoritative game logic)",
   "main": "lib/index.js",
-  "engines": { "node": "22" },
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "copy-config": "node scripts/copy-config.js",
     "build": "npm run copy-config && tsc",
     "lint": "eslint src",
     "test": "npm run copy-config && vitest run",
     "test:watch": "vitest",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions"
+    "serve": "npm run build && firebase emulators:start --only functions,firestore,auth,storage",
+    "deploy": "firebase deploy --only functions",
+    "test:integration": "npm run copy-config && firebase emulators:exec --only firestore --project snap-mon-7a9bf \"vitest run -c vitest.integration.config.ts\""
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
     "firebase-functions": "^6.3.0",
+    "google-auth-library": "^11.1.0",
+    "jimp": "^1.6.1",
     "zod": "^3.24.0"
   },
   "devDependencies": {

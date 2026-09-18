@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/firebase_env.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
 import 'firebase_options.dart';
@@ -17,6 +18,8 @@ Future<void> main() async {
     providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
     providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
   );
+  // `--dart-define=USE_EMULATOR=true` のときだけローカルエミュレータへ
+  configureEmulatorsIfNeeded();
   runApp(const ProviderScope(child: SnapMonApp()));
 }
 

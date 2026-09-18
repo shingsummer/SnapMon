@@ -1,5 +1,5 @@
 // P0 完了条件「サインインしてホームが出る」のスモークテスト。
-// Firebase は使わず、AuthRepository をフェイクに差し替える。
+// Firebase は使わず、AuthRepository / Firestore ストリームをフェイクに差し替える。
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -11,6 +11,7 @@ import 'package:snapmon/core/config.dart';
 import 'package:snapmon/domain/growth.dart';
 import 'package:snapmon/features/auth/auth_provider.dart';
 import 'package:snapmon/features/auth/auth_repository.dart';
+import 'package:snapmon/features/monster/monster_repository.dart';
 import 'package:snapmon/main.dart';
 
 GameConfig _loadConfigFromRepo() {
@@ -48,13 +49,15 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
-Future<FakeAuthRepository> _pumpApp(WidgetTester tester) async {
+Future<FakeAuthRepository> _pumpApp(WidgetTester tester, {Map<String, dynamic>? userDoc}) async {
   final repo = FakeAuthRepository();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         gameConfigProvider.overrideWith((ref) async => _loadConfigFromRepo()),
         authRepositoryProvider.overrideWithValue(repo),
+        userDocProvider.overrideWith((ref) => Stream.value(userDoc)),
+        monstersProvider.overrideWith((ref) => Stream.value(const [])),
       ],
       child: const SnapMonApp(),
     ),
@@ -83,6 +86,7 @@ void main() {
     expect(find.text('今日の撮影枠'), findsOneWidget);
     expect(find.text('残り 3 / 3 枚'), findsOneWidget);
     expect(find.text('開発者'), findsOneWidget);
+    expect(find.text('撮る'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('sign-out')));
     await tester.pumpAndSettle();
@@ -113,5 +117,24 @@ void main() {
     expect(find.text('ネットワークに接続できません'), findsOneWidget);
     expect(find.byKey(const Key('google-sign-in')), findsOneWidget);
     expect(find.text('今日の撮影枠'), findsNothing);
+  });
+
+  testWidgets('snap quota exhausted disables the shoot button', (tester) async {
+    final today = jstDateKey(DateTime.now());
+    await _pumpApp(tester, userDoc: {'dailyState': {'date': today, 'snapsUsed': 3}});
+    await _agree(tester);
+    await tester.tap(find.byKey(const Key('dev-sign-in')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('残り 0 / 3 枚'), findsOneWidget);
+    expect(find.text('今日はおしまい'), findsOneWidget);
+    expect(tester.widget<FloatingActionButton>(find.byKey(const Key('shoot'))).onPressed, isNull);
+  });
+
+  test('remainingSnaps resets on a new JST day', () {
+    expect(remainingSnaps(null, 3), 3);
+    expect(remainingSnaps({'dailyState': {'date': '19990101', 'snapsUsed': 3}}, 3), 3);
+    final today = jstDateKey(DateTime.now());
+    expect(remainingSnaps({'dailyState': {'date': today, 'snapsUsed': 2}}, 3), 1);
   });
 }
