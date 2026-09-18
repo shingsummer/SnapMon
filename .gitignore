@@ -45,3 +45,6 @@ app/android/.kotlin/
 
 # Functions エミュレータの Secret 上書き（機密になり得るので commit しない）
 functions/.secret.local
+
+# しぴさんのテスト写真（個人の写真なので commit しない）
+/samples/
