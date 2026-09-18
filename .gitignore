@@ -16,7 +16,6 @@ app/.packages
 app/build/
 app/.flutter-plugins
 app/.flutter-plugins-dependencies
-app/pubspec.lock
 app/ios/Pods/
 app/ios/.symlinks/
 app/android/.gradle/
@@ -38,3 +37,6 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
+
+# Flutter SDK 本体（しぴさんのローカル配置。リポジトリには含めない）
+/flutter/

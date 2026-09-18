@@ -4,6 +4,14 @@ analyzer:
   errors:
     # domain/ は Flutter 非依存の純 Dart（企画書 §15.3）
     avoid_print: warning
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:
