@@ -5,15 +5,15 @@ import { pregenerationBucketIds } from "../src/art/artBucket";
 import { hexToHsl } from "../src/generate/classify";
 
 describe("art prompt", () => {
-  it("follows the §16.3 template and forbids humans/copyrighted characters", () => {
+  it("follows the §16.3 template with positive phrasing", () => {
     const p = buildArtPrompt({ family: "aqua", subFamily: null, element: "water", colors: ["1e88e5", "8fc3f2", "124f89"], sourceLabel: "aqua" });
     expect(p).toContain("A single original fantasy creature");
     expect(p).toContain("Family: aqua (");
     expect(p).toContain("Element: water (");
     expect(p).toContain("#1e88e5");
     expect(p).toContain("plain white background");
-    expect(p).toContain("Do not depict humans");
-    expect(p).toContain("copyrighted character");
+    expect(p).toContain("non-human mascot");
+    expect(p).not.toMatch(/Do not/); // 否定文は安全フィルタに弾かれるため使わない
   });
   it("mentions the sub family when present", () => {
     const p = buildArtPrompt({ family: "beast", subFamily: "toy", element: "fire", colors: ["e53935", "f29c9a", "891f1f"], sourceLabel: "beast and toy" });

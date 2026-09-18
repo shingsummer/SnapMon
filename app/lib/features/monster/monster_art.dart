@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'art_provider.dart';
 import 'models.dart';
+import 'monster_repository.dart';
 
 /// モンスターの絵（企画書 §3.6）。
 /// アートバケットが ready なら共有アート（Storage）＋個体差の色相・彩度シフト、
@@ -30,7 +31,23 @@ class MonsterArt extends ConsumerWidget {
           placeholder,
           Padding(
             padding: const EdgeInsets.all(6),
-            child: Chip(visualDensity: VisualDensity.compact, label: Text(bucket.status == 'failed' ? '仮の姿' : '絵を描いています…')),
+            child: bucket.status == 'failed'
+                ? ActionChip(
+                    key: const Key('retry-art'),
+                    visualDensity: VisualDensity.compact,
+                    avatar: const Icon(Icons.refresh, size: 16),
+                    label: const Text('仮の姿・もう一度描く'),
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.maybeOf(context);
+                      try {
+                        final outcome = await ref.read(monsterApiProvider).retryArtBucket(monster.artBucketId);
+                        messenger?.showSnackBar(SnackBar(content: Text(outcome == 'generated' ? '絵ができた！' : '描けなかった（$outcome）')));
+                      } on MonsterApiException catch (e) {
+                        messenger?.showSnackBar(SnackBar(content: Text(e.message)));
+                      }
+                    },
+                  )
+                : const Chip(visualDensity: VisualDensity.compact, label: Text('絵を描いています…')),
           ),
         ],
       );

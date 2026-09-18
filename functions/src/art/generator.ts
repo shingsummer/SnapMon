@@ -30,7 +30,8 @@ export class OpenAIImageGenerator implements ImageGenerator {
     const res = await fetch(OPENAI_ENDPOINT, {
       method: "POST",
       headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: this.model, prompt, n: 1, size: opts.size, quality: opts.quality, output_format: "png" }),
+      // moderation: "low" は gpt-image 系の安全フィルタを緩める公式オプション（モンスター絵の誤検知対策）
+      body: JSON.stringify({ model: this.model, prompt, n: 1, size: opts.size, quality: opts.quality, output_format: "png", moderation: "low" }),
     });
     if (!res.ok) {
       throw new Error(`OpenAI Images HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);

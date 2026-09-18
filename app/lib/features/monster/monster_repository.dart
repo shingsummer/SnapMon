@@ -106,6 +106,7 @@ abstract class MonsterApi {
   Future<void> setPartner(String monsterId);
   Future<UseItemResult> useItem(String monsterId, String itemType);
   Future<void> rest(String monsterId);
+  Future<String> retryArtBucket(String bucketId);
 }
 
 class FirebaseMonsterApi implements MonsterApi {
@@ -149,6 +150,12 @@ class FirebaseMonsterApi implements MonsterApi {
   @override
   Future<void> rest(String monsterId) async {
     await _call('rest', {'monsterId': monsterId});
+  }
+
+  @override
+  Future<String> retryArtBucket(String bucketId) async {
+    final res = await _call('retryArtBucket', {'bucketId': bucketId});
+    return ((res['data'] as Map)['outcome'] as String?) ?? 'unknown';
   }
 
   Future<Map<dynamic, dynamic>> _call(String name, Map<String, dynamic> data) async {

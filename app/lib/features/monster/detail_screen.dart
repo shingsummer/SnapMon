@@ -52,7 +52,7 @@ class MonsterDetailScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Center(child: MonsterArt(monster: m, size: 180)),
+              Center(child: MonsterArt(monster: m, size: 180, showPendingBadge: true)),
               const SizedBox(height: 8),
               Center(
                 child: Wrap(

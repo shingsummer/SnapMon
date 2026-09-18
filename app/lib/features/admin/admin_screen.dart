@@ -15,6 +15,7 @@ class AdminScreen extends ConsumerStatefulWidget {
 
 class _AdminScreenState extends ConsumerState<AdminScreen> {
   Map<String, dynamic>? _stats;
+  final _bucketCtrl = TextEditingController();
   String? _message;
   bool _busy = false;
 
@@ -53,6 +54,13 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
           OutlinedButton(
             onPressed: _busy ? null : () => _call('pregenerateArt', {'limit': 300}),
             child: const Text('事前生成 252 バケットを投入（生成コストが発生）'),
+          ),
+          const SizedBox(height: 16),
+          TextField(controller: _bucketCtrl, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'バケット ID（例: aqua_none_water_h6l1）')),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: _busy ? null : () => _call('retryArtBucket', {'bucketId': _bucketCtrl.text.trim()}),
+            child: const Text('このバケットを再生成'),
           ),
           const SizedBox(height: 16),
           if (_busy) const Center(child: CircularProgressIndicator()),
