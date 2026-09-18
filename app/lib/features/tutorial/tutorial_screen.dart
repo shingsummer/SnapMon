@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/router.dart';
+
 /// S02 チュートリアル（企画書 §8.1, §8.2）。撮る → 生まれる → 歩く の 3 ページ。
 /// 歩数の権限は「歩く」の説明直後（ホームに戻ったときの同期）で求める。
-class TutorialScreen extends StatefulWidget {
+class TutorialScreen extends ConsumerStatefulWidget {
   const TutorialScreen({super.key});
 
   static const prefKey = 'tutorialDone';
@@ -24,10 +27,10 @@ class TutorialScreen extends StatefulWidget {
   }
 
   @override
-  State<TutorialScreen> createState() => _TutorialScreenState();
+  ConsumerState<TutorialScreen> createState() => _TutorialScreenState();
 }
 
-class _TutorialScreenState extends State<TutorialScreen> {
+class _TutorialScreenState extends ConsumerState<TutorialScreen> {
   final _controller = PageController();
   int _page = 0;
 
@@ -45,6 +48,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
 
   Future<void> _finish() async {
     await TutorialScreen.markDone();
+    ref.read(tutorialDoneProvider.notifier).state = true; // ルーターのリダイレクト条件も更新
     if (mounted) context.go('/home');
   }
 

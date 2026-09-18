@@ -42,12 +42,12 @@ final tutorialDoneProvider = StateProvider<bool>((ref) => true);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = ref.watch(authProvider.notifier);
-  final tutorialDone = ref.watch(tutorialDoneProvider);
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final signedIn = ref.read(authProvider).state.signedIn;
+      final tutorialDone = ref.read(tutorialDoneProvider); // watch にするとルーターが作り直されるので read
       final goingToLogin = state.matchedLocation == AppRoutes.login;
       if (!signedIn && !goingToLogin) return AppRoutes.login;
       if (signedIn && goingToLogin) return AppRoutes.home;
