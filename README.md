@@ -78,7 +78,19 @@ cd app && bash tool/copy_config.sh && flutter run
 
 ## 開発フェーズ
 
-企画書 §13。P0 完了（2026-09-18）。P1 はエミュレータで本番 Vision API による誕生まで確認済み（実機確認のみ残り）。現在: **P2 育成**（歩数→VP→トレーニング→成長をエミュレータ＋疑似歩数で確認済み。Health Connect からの実歩数取得は実機待ち）。
+企画書 §13。P0 完了（2026-09-18）。P1 はエミュレータで本番 Vision API による誕生まで確認済み（実機確認のみ残り）。P2 育成はエミュレータ＋疑似歩数で確認済み（Health Connect の実歩数は実機待ち）。現在: **P3 アート**（エミュレータで疑似生成→表示まで確認済み。OPENAI_API_KEY 登録後に本番デプロイ・事前生成・コスト実測）。
+
+### 画像生成の API キー（P3）
+
+コードにも .env にも書かない。Secret Manager に登録し、Functions だけが読む。
+
+```bash
+firebase functions:secrets:set OPENAI_API_KEY --project snap-mon-7a9bf   # 聞かれたらキーを貼る
+```
+
+モデル名は `functions/.env` の `OPENAI_IMAGE_MODEL`、単価の目安は `shared-config/constants.json` の `artCostUsd`。
+エミュレータでは `functions/.secret.local`（git 管理外、空でよい）により疑似生成に切り替わる。
+事前生成（252 バケット）とコスト統計は、アプリのホーム画面タイトルを長押しして開く管理画面から（`ADMIN_UIDS` の uid のみ）。
 
 ### デプロイ
 
