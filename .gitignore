@@ -39,3 +39,6 @@ Thumbs.db
 
 # Flutter SDK 本体（しぴさんのローカル配置。リポジトリには含めない）
 /flutter/
+
+# Kotlin ビルドセッション
+app/android/.kotlin/
