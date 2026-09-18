@@ -38,7 +38,8 @@ python tools/gen_placeholder_art.py
 cd functions && npm run build && cd .. && firebase emulators:start --only functions,firestore --project snap-mon-7a9bf
 
 # ターミナル B: アプリをエミュレータ接続モードで起動（Android エミュレータからは 10.0.2.2 に接続）
-cd app && bash tool/copy_config.sh && flutter run --dart-define=USE_EMULATOR=true
+#   FAKE_STEPS=true で疑似歩数（直近 40 分の歩行）を流し込む。エミュレータには歩数センサーが無いため
+cd app && bash tool/copy_config.sh && flutter run --dart-define=USE_EMULATOR=true --dart-define=FAKE_STEPS=true
 ```
 
 エミュレータ上の generateMonster は Vision を呼ばず「マグカップ／青」の固定結果を返す（`FakeVisionClient`）。
@@ -77,7 +78,7 @@ cd app && bash tool/copy_config.sh && flutter run
 
 ## 開発フェーズ
 
-企画書 §13。P0 完了（2026-09-18）。現在: **P1 誕生**（本番 Functions デプロイ済み、エミュレータから本番 Vision API で誕生を確認。実機での撮影確認と Health Connect 用途申告が残り）。
+企画書 §13。P0 完了（2026-09-18）。P1 はエミュレータで本番 Vision API による誕生まで確認済み（実機確認のみ残り）。現在: **P2 育成**（歩数→VP→トレーニング→成長をエミュレータ＋疑似歩数で確認済み。Health Connect からの実歩数取得は実機待ち）。
 
 ### デプロイ
 
