@@ -34,6 +34,8 @@ export interface GenerateDeps {
   nonce?: () => string;
   /** 出自写真の保存。失敗しても誕生は成立させる */
   saveSource?: (uid: string, monsterId: string, image: Buffer) => Promise<string>;
+  /** エミュレータ専用: 1 日の枚数とレート制限を無視する（バトルの動作確認で 4 体以上要るため） */
+  skipLimits?: boolean;
 }
 
 export interface GenerateResult {
@@ -118,10 +120,10 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
 
     // ④ レート制限と日次上限
     const lastSnapAt = (user.lastSnapAt as number | undefined) ?? 0;
-    if (nowMs - lastSnapAt < RATE_LIMIT_MS) {
+    if (!deps.skipLimits && nowMs - lastSnapAt < RATE_LIMIT_MS) {
       throw new GenerateError("rate_limited", "少し待ってからもう一度撮ってください");
     }
-    if (snapsUsed >= snapsPerDay) {
+    if (!deps.skipLimits && snapsUsed >= snapsPerDay) {
       throw new GenerateError("daily_limit", "今日の撮影枚数を使い切りました。明日また撮ろう");
     }
 

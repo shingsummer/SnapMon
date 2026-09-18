@@ -1,17 +1,1079 @@
 {
-  "_doc": "技テーブル。企画書 v1.3 §6.2 の尺度（power 190〜250 で HP の 15〜20%）。日本語名は未決（§15.5）。P4 で全ファミリー6技 × 属性4技を埋める。ここでは骨組みとして各分類の代表を置く。",
-  "categories": ["physical", "special", "support"],
+  "_doc": "tools/gen_moves.py で生成。power は企画書 §6.2 の尺度（190〜250）。日本語名は仮（§15.5）。effect のキー: selfDamageRatio, critBonus, accuracy, priority, healRatio, drainRatio, {atk,def,spa,spd,luck,evasion}Stages（自分）, {atk,def,spd,accuracy}StagesTarget（相手）, sleepChance, paralyzeChance, randomStat",
+  "categories": [
+    "physical",
+    "special",
+    "support"
+  ],
+  "elementChart": {
+    "_doc": "攻撃属性 → 防御属性: 倍率。3すくみ（火>草>水>火）＋光闇相互有利。未記載は 1.0",
+    "fire": {
+      "grass": 1.5,
+      "water": 0.67
+    },
+    "grass": {
+      "water": 1.5,
+      "fire": 0.67
+    },
+    "water": {
+      "fire": 1.5,
+      "grass": 0.67
+    },
+    "light": {
+      "dark": 1.5
+    },
+    "dark": {
+      "light": 1.5
+    }
+  },
   "moves": [
-    { "id": "beast_bite",    "name": "かみつき",   "family": "beast",  "element": null,    "category": "physical", "power": 200, "effect": null },
-    { "id": "beast_rush",    "name": "とっしん",   "family": "beast",  "element": null,    "category": "physical", "power": 240, "effect": { "selfDamageRatio": 0.1 } },
-    { "id": "plant_heal",    "name": "こうごうせい", "family": "plant",  "element": null,    "category": "support",  "power": 0,   "effect": { "healRatio": 0.25 } },
-    { "id": "metal_guard",   "name": "てっぺき",   "family": "metal",  "element": null,    "category": "support",  "power": 0,   "effect": { "defStages": 1 } },
-    { "id": "fire_burst",    "name": "ほのお",     "family": null,     "element": "fire",  "category": "special",  "power": 210, "effect": null },
-    { "id": "water_shot",    "name": "みずでっぽう", "family": null,     "element": "water", "category": "special",  "power": 210, "effect": null },
-    { "id": "grass_whip",    "name": "つるのムチ", "family": null,     "element": "grass", "category": "physical", "power": 210, "effect": null },
-    { "id": "thunder_spark", "name": "スパーク",   "family": null,     "element": "thunder", "category": "special", "power": 210, "effect": null },
-    { "id": "light_ray",     "name": "ひかり",     "family": null,     "element": "light", "category": "special",  "power": 210, "effect": null },
-    { "id": "dark_veil",     "name": "やみ",       "family": null,     "element": "dark",  "category": "special",  "power": 210, "effect": null },
-    { "id": "neutral_tackle", "name": "たいあたり", "family": null,     "element": "neutral", "category": "physical", "power": 190, "effect": null }
+    {
+      "id": "beast_bite",
+      "name": "かみつき",
+      "family": "beast",
+      "element": null,
+      "category": "physical",
+      "power": 200,
+      "effect": null
+    },
+    {
+      "id": "beast_rush",
+      "name": "とっしん",
+      "family": "beast",
+      "element": null,
+      "category": "physical",
+      "power": 250,
+      "effect": {
+        "selfDamageRatio": 0.1
+      }
+    },
+    {
+      "id": "beast_claw",
+      "name": "ひっかき",
+      "family": "beast",
+      "element": null,
+      "category": "physical",
+      "power": 160,
+      "effect": {
+        "critBonus": 0.15
+      }
+    },
+    {
+      "id": "beast_howl",
+      "name": "とおぼえ",
+      "family": "beast",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "atkStages": 1
+      }
+    },
+    {
+      "id": "beast_pounce",
+      "name": "とびかかり",
+      "family": "beast",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "beast_fang",
+      "name": "するどいキバ",
+      "family": "beast",
+      "element": null,
+      "category": "physical",
+      "power": 230,
+      "effect": {
+        "accuracy": 0.85
+      }
+    },
+    {
+      "id": "plant_leaf",
+      "name": "はっぱカッター",
+      "family": "plant",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": {
+        "critBonus": 0.1
+      }
+    },
+    {
+      "id": "plant_heal",
+      "name": "こうごうせい",
+      "family": "plant",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.25
+      }
+    },
+    {
+      "id": "plant_vine",
+      "name": "つるでしばる",
+      "family": "plant",
+      "element": null,
+      "category": "physical",
+      "power": 170,
+      "effect": {
+        "spdStagesTarget": -1
+      }
+    },
+    {
+      "id": "plant_seed",
+      "name": "たねばくだん",
+      "family": "plant",
+      "element": null,
+      "category": "special",
+      "power": 210,
+      "effect": null
+    },
+    {
+      "id": "plant_root",
+      "name": "ねをはる",
+      "family": "plant",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "defStages": 1
+      }
+    },
+    {
+      "id": "plant_spore",
+      "name": "ねむりこな",
+      "family": "plant",
+      "element": null,
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "sleepChance": 0.3
+      }
+    },
+    {
+      "id": "metal_guard",
+      "name": "てっぺき",
+      "family": "metal",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "defStages": 1
+      }
+    },
+    {
+      "id": "metal_slam",
+      "name": "アイアンボディ",
+      "family": "metal",
+      "element": null,
+      "category": "physical",
+      "power": 220,
+      "effect": null
+    },
+    {
+      "id": "metal_drill",
+      "name": "ドリル",
+      "family": "metal",
+      "element": null,
+      "category": "physical",
+      "power": 240,
+      "effect": {
+        "accuracy": 0.85
+      }
+    },
+    {
+      "id": "metal_sharpen",
+      "name": "とぎすます",
+      "family": "metal",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "atkStages": 1
+      }
+    },
+    {
+      "id": "metal_gear",
+      "name": "ギアクラッシュ",
+      "family": "metal",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": {
+        "defStagesTarget": -1
+      }
+    },
+    {
+      "id": "metal_reflect",
+      "name": "はねかえし",
+      "family": "metal",
+      "element": null,
+      "category": "special",
+      "power": 180,
+      "effect": null
+    },
+    {
+      "id": "aqua_splash",
+      "name": "みずかけ",
+      "family": "aqua",
+      "element": null,
+      "category": "special",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "aqua_bubble",
+      "name": "あわ",
+      "family": "aqua",
+      "element": null,
+      "category": "special",
+      "power": 160,
+      "effect": {
+        "spdStagesTarget": -1
+      }
+    },
+    {
+      "id": "aqua_wave",
+      "name": "なみのり",
+      "family": "aqua",
+      "element": null,
+      "category": "special",
+      "power": 220,
+      "effect": null
+    },
+    {
+      "id": "aqua_mist",
+      "name": "きり",
+      "family": "aqua",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "evasionStages": 1
+      }
+    },
+    {
+      "id": "aqua_ripple",
+      "name": "はもん",
+      "family": "aqua",
+      "element": null,
+      "category": "special",
+      "power": 200,
+      "effect": {
+        "critBonus": 0.1
+      }
+    },
+    {
+      "id": "aqua_soak",
+      "name": "びしょぬれ",
+      "family": "aqua",
+      "element": null,
+      "category": "physical",
+      "power": 170,
+      "effect": {
+        "atkStagesTarget": -1
+      }
+    },
+    {
+      "id": "rock_throw",
+      "name": "いしつぶて",
+      "family": "rock",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "rock_harden",
+      "name": "かたくなる",
+      "family": "rock",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "defStages": 1
+      }
+    },
+    {
+      "id": "rock_slide",
+      "name": "がんせきなだれ",
+      "family": "rock",
+      "element": null,
+      "category": "physical",
+      "power": 240,
+      "effect": {
+        "accuracy": 0.85
+      }
+    },
+    {
+      "id": "rock_press",
+      "name": "おしつぶす",
+      "family": "rock",
+      "element": null,
+      "category": "physical",
+      "power": 210,
+      "effect": null
+    },
+    {
+      "id": "rock_moss",
+      "name": "コケむす",
+      "family": "rock",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.2
+      }
+    },
+    {
+      "id": "rock_quake",
+      "name": "じひびき",
+      "family": "rock",
+      "element": null,
+      "category": "physical",
+      "power": 200,
+      "effect": {
+        "spdStagesTarget": -1
+      }
+    },
+    {
+      "id": "spark_zap",
+      "name": "でんげき",
+      "family": "spark",
+      "element": null,
+      "category": "special",
+      "power": 200,
+      "effect": null
+    },
+    {
+      "id": "spark_dash",
+      "name": "かみなりダッシュ",
+      "family": "spark",
+      "element": null,
+      "category": "physical",
+      "power": 180,
+      "effect": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "spark_charge",
+      "name": "じゅうでん",
+      "family": "spark",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "spaStages": 1
+      }
+    },
+    {
+      "id": "spark_overload",
+      "name": "オーバーロード",
+      "family": "spark",
+      "element": null,
+      "category": "special",
+      "power": 250,
+      "effect": {
+        "selfDamageRatio": 0.1
+      }
+    },
+    {
+      "id": "spark_static",
+      "name": "せいでんき",
+      "family": "spark",
+      "element": null,
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "paralyzeChance": 0.3
+      }
+    },
+    {
+      "id": "spark_flash",
+      "name": "フラッシュ",
+      "family": "spark",
+      "element": null,
+      "category": "special",
+      "power": 170,
+      "effect": {
+        "accuracyStagesTarget": -1
+      }
+    },
+    {
+      "id": "ghost_touch",
+      "name": "ひやりタッチ",
+      "family": "ghost",
+      "element": null,
+      "category": "special",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "ghost_fade",
+      "name": "きえる",
+      "family": "ghost",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "evasionStages": 1
+      }
+    },
+    {
+      "id": "ghost_curse",
+      "name": "のろい",
+      "family": "ghost",
+      "element": null,
+      "category": "special",
+      "power": 160,
+      "effect": {
+        "atkStagesTarget": -1
+      }
+    },
+    {
+      "id": "ghost_wail",
+      "name": "うらめしや",
+      "family": "ghost",
+      "element": null,
+      "category": "special",
+      "power": 220,
+      "effect": null
+    },
+    {
+      "id": "ghost_drain",
+      "name": "たましいすい",
+      "family": "ghost",
+      "element": null,
+      "category": "special",
+      "power": 180,
+      "effect": {
+        "drainRatio": 0.5
+      }
+    },
+    {
+      "id": "ghost_shadow",
+      "name": "かげうち",
+      "family": "ghost",
+      "element": null,
+      "category": "physical",
+      "power": 180,
+      "effect": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "food_toss",
+      "name": "なげつける",
+      "family": "food",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "food_snack",
+      "name": "おやつ",
+      "family": "food",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.3
+      }
+    },
+    {
+      "id": "food_spicy",
+      "name": "げきから",
+      "family": "food",
+      "element": null,
+      "category": "special",
+      "power": 210,
+      "effect": null
+    },
+    {
+      "id": "food_sticky",
+      "name": "ベタベタ",
+      "family": "food",
+      "element": null,
+      "category": "physical",
+      "power": 160,
+      "effect": {
+        "spdStagesTarget": -1
+      }
+    },
+    {
+      "id": "food_feast",
+      "name": "たべほうだい",
+      "family": "food",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "atkStages": 1,
+        "defStages": 1,
+        "spdStages": -1
+      }
+    },
+    {
+      "id": "food_crumb",
+      "name": "パンくず",
+      "family": "food",
+      "element": null,
+      "category": "physical",
+      "power": 150,
+      "effect": {
+        "luckStages": 1
+      }
+    },
+    {
+      "id": "paper_cut",
+      "name": "かみで切る",
+      "family": "paper",
+      "element": null,
+      "category": "physical",
+      "power": 200,
+      "effect": {
+        "critBonus": 0.15
+      }
+    },
+    {
+      "id": "paper_fold",
+      "name": "おりたたむ",
+      "family": "paper",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "evasionStages": 1
+      }
+    },
+    {
+      "id": "paper_plane",
+      "name": "かみひこうき",
+      "family": "paper",
+      "element": null,
+      "category": "physical",
+      "power": 180,
+      "effect": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "paper_scroll",
+      "name": "まきもの",
+      "family": "paper",
+      "element": null,
+      "category": "special",
+      "power": 200,
+      "effect": null
+    },
+    {
+      "id": "paper_confuse",
+      "name": "ややこしい",
+      "family": "paper",
+      "element": null,
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "accuracyStagesTarget": -1
+      }
+    },
+    {
+      "id": "paper_origami",
+      "name": "おりがみへんげ",
+      "family": "paper",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "spaStages": 1
+      }
+    },
+    {
+      "id": "cloth_whip",
+      "name": "ぬのムチ",
+      "family": "cloth",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "cloth_wrap",
+      "name": "くるむ",
+      "family": "cloth",
+      "element": null,
+      "category": "physical",
+      "power": 160,
+      "effect": {
+        "spdStagesTarget": -1
+      }
+    },
+    {
+      "id": "cloth_patch",
+      "name": "つぎはぎ",
+      "family": "cloth",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.25
+      }
+    },
+    {
+      "id": "cloth_flap",
+      "name": "はためく",
+      "family": "cloth",
+      "element": null,
+      "category": "special",
+      "power": 180,
+      "effect": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "cloth_thread",
+      "name": "いとでしばる",
+      "family": "cloth",
+      "element": null,
+      "category": "physical",
+      "power": 170,
+      "effect": {
+        "atkStagesTarget": -1
+      }
+    },
+    {
+      "id": "cloth_sew",
+      "name": "ぬいあわせ",
+      "family": "cloth",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "defStages": 1
+      }
+    },
+    {
+      "id": "toy_bounce",
+      "name": "はねる",
+      "family": "toy",
+      "element": null,
+      "category": "physical",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "toy_spin",
+      "name": "コマまわし",
+      "family": "toy",
+      "element": null,
+      "category": "physical",
+      "power": 210,
+      "effect": null
+    },
+    {
+      "id": "toy_squeak",
+      "name": "ピーピー",
+      "family": "toy",
+      "element": null,
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "accuracyStagesTarget": -1
+      }
+    },
+    {
+      "id": "toy_lucky",
+      "name": "ラッキー",
+      "family": "toy",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "luckStages": 2
+      }
+    },
+    {
+      "id": "toy_windup",
+      "name": "ぜんまい",
+      "family": "toy",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "spdStages": 1
+      }
+    },
+    {
+      "id": "toy_surprise",
+      "name": "びっくりばこ",
+      "family": "toy",
+      "element": null,
+      "category": "special",
+      "power": 240,
+      "effect": {
+        "accuracy": 0.8
+      }
+    },
+    {
+      "id": "enigma_question",
+      "name": "はてな",
+      "family": "enigma",
+      "element": null,
+      "category": "special",
+      "power": 200,
+      "effect": null
+    },
+    {
+      "id": "enigma_mystery",
+      "name": "なぞのちから",
+      "family": "enigma",
+      "element": null,
+      "category": "special",
+      "power": 230,
+      "effect": {
+        "accuracy": 0.9
+      }
+    },
+    {
+      "id": "enigma_shift",
+      "name": "いれかわり",
+      "family": "enigma",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "spaStages": 1,
+        "atkStages": 1,
+        "defStages": -1
+      }
+    },
+    {
+      "id": "enigma_glitch",
+      "name": "バグる",
+      "family": "enigma",
+      "element": null,
+      "category": "physical",
+      "power": 180,
+      "effect": {
+        "randomStat": true
+      }
+    },
+    {
+      "id": "enigma_blank",
+      "name": "むひょうじょう",
+      "family": "enigma",
+      "element": null,
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "evasionStages": 1
+      }
+    },
+    {
+      "id": "enigma_answer",
+      "name": "こたえ",
+      "family": "enigma",
+      "element": null,
+      "category": "physical",
+      "power": 210,
+      "effect": {
+        "critBonus": 0.1
+      }
+    },
+    {
+      "id": "fire_ember",
+      "name": "ひのこ",
+      "family": null,
+      "element": "fire",
+      "category": "special",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "fire_burst",
+      "name": "ほのお",
+      "family": null,
+      "element": "fire",
+      "category": "special",
+      "power": 210,
+      "effect": null
+    },
+    {
+      "id": "fire_blaze",
+      "name": "だいもえ",
+      "family": null,
+      "element": "fire",
+      "category": "special",
+      "power": 250,
+      "effect": {
+        "selfDamageRatio": 0.1
+      }
+    },
+    {
+      "id": "fire_warm",
+      "name": "あたためる",
+      "family": null,
+      "element": "fire",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "atkStages": 1
+      }
+    },
+    {
+      "id": "water_shot",
+      "name": "みずでっぽう",
+      "family": null,
+      "element": "water",
+      "category": "special",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "water_stream",
+      "name": "げきりゅう",
+      "family": null,
+      "element": "water",
+      "category": "special",
+      "power": 220,
+      "effect": null
+    },
+    {
+      "id": "water_veil",
+      "name": "みずのまく",
+      "family": null,
+      "element": "water",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "defStages": 1
+      }
+    },
+    {
+      "id": "water_drizzle",
+      "name": "こさめ",
+      "family": null,
+      "element": "water",
+      "category": "special",
+      "power": 160,
+      "effect": {
+        "healRatio": 0.1
+      }
+    },
+    {
+      "id": "grass_whip",
+      "name": "つるのムチ",
+      "family": null,
+      "element": "grass",
+      "category": "physical",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "grass_bloom",
+      "name": "かいか",
+      "family": null,
+      "element": "grass",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.25
+      }
+    },
+    {
+      "id": "grass_thorn",
+      "name": "とげ",
+      "family": null,
+      "element": "grass",
+      "category": "physical",
+      "power": 200,
+      "effect": {
+        "critBonus": 0.1
+      }
+    },
+    {
+      "id": "grass_pollen",
+      "name": "かふん",
+      "family": null,
+      "element": "grass",
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "sleepChance": 0.25
+      }
+    },
+    {
+      "id": "thunder_spark",
+      "name": "スパーク",
+      "family": null,
+      "element": "thunder",
+      "category": "special",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "thunder_bolt",
+      "name": "いなずま",
+      "family": null,
+      "element": "thunder",
+      "category": "special",
+      "power": 230,
+      "effect": {
+        "accuracy": 0.9
+      }
+    },
+    {
+      "id": "thunder_quick",
+      "name": "でんこうせっか",
+      "family": null,
+      "element": "thunder",
+      "category": "physical",
+      "power": 170,
+      "effect": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "thunder_numb",
+      "name": "しびれ",
+      "family": null,
+      "element": "thunder",
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "paralyzeChance": 0.3
+      }
+    },
+    {
+      "id": "light_ray",
+      "name": "ひかり",
+      "family": null,
+      "element": "light",
+      "category": "special",
+      "power": 200,
+      "effect": null
+    },
+    {
+      "id": "light_shine",
+      "name": "かがやき",
+      "family": null,
+      "element": "light",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "spaStages": 1
+      }
+    },
+    {
+      "id": "light_purify",
+      "name": "きよめ",
+      "family": null,
+      "element": "light",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.25
+      }
+    },
+    {
+      "id": "light_beam",
+      "name": "ひかりのやいば",
+      "family": null,
+      "element": "light",
+      "category": "special",
+      "power": 240,
+      "effect": {
+        "accuracy": 0.85
+      }
+    },
+    {
+      "id": "dark_veil",
+      "name": "やみ",
+      "family": null,
+      "element": "dark",
+      "category": "special",
+      "power": 200,
+      "effect": null
+    },
+    {
+      "id": "dark_bite",
+      "name": "やみのキバ",
+      "family": null,
+      "element": "dark",
+      "category": "physical",
+      "power": 210,
+      "effect": null
+    },
+    {
+      "id": "dark_sap",
+      "name": "せいきすい",
+      "family": null,
+      "element": "dark",
+      "category": "special",
+      "power": 170,
+      "effect": {
+        "drainRatio": 0.5
+      }
+    },
+    {
+      "id": "dark_fear",
+      "name": "おびえさせる",
+      "family": null,
+      "element": "dark",
+      "category": "special",
+      "power": 150,
+      "effect": {
+        "atkStagesTarget": -1
+      }
+    },
+    {
+      "id": "neutral_tackle",
+      "name": "たいあたり",
+      "family": null,
+      "element": "neutral",
+      "category": "physical",
+      "power": 190,
+      "effect": null
+    },
+    {
+      "id": "neutral_focus",
+      "name": "きあい",
+      "family": null,
+      "element": "neutral",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "atkStages": 1
+      }
+    },
+    {
+      "id": "neutral_rest",
+      "name": "ひとやすみ",
+      "family": null,
+      "element": "neutral",
+      "category": "support",
+      "power": 0,
+      "effect": {
+        "healRatio": 0.3
+      }
+    },
+    {
+      "id": "neutral_body",
+      "name": "ぜんりょくタックル",
+      "family": null,
+      "element": "neutral",
+      "category": "physical",
+      "power": 240,
+      "effect": {
+        "selfDamageRatio": 0.1
+      }
+    }
   ]
 }

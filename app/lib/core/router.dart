@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import '../features/admin/admin_screen.dart';
 import '../features/auth/auth_provider.dart';
+import '../features/battle/battle_models.dart';
+import '../features/battle/battle_screen.dart';
+import '../features/battle/friends_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/camera/camera_screen.dart';
 import '../features/home/home_screen.dart';
@@ -22,6 +25,8 @@ class AppRoutes {
   static const monster = '/monster/:id'; // S07
   static const train = '/train/:id'; // S08
   static const admin = '/admin'; // 管理者のみ（サーバー側で判定）
+  static const friends = '/friends'; // S16
+  static const battle = '/battle/:id'; // S11
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -51,6 +56,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.monster, builder: (_, state) => MonsterDetailScreen(monsterId: state.pathParameters['id']!)),
       GoRoute(path: AppRoutes.train, builder: (_, state) => TrainingScreen(monsterId: state.pathParameters['id']!)),
       GoRoute(path: AppRoutes.admin, builder: (_, __) => const AdminScreen()),
+      GoRoute(path: AppRoutes.friends, builder: (_, __) => const FriendsScreen()),
+      GoRoute(
+        path: AppRoutes.battle,
+        builder: (_, state) => BattleScreen(battleId: state.pathParameters['id']!, record: state.extra is BattleRecord ? state.extra as BattleRecord : null),
+      ),
     ],
   );
 });

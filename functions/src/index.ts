@@ -19,6 +19,8 @@ import { MonsterActionError, restCore, setPartnerCore, useItemCore } from "./mon
 import { RenameError, renameMonsterCore } from "./monster/rename";
 import { TrainError, trainCore } from "./monster/train";
 import { StepsError, submitStepsCore } from "./steps/submitSteps";
+import { BattleError, setBattlePartyCore, startBattleCore } from "./battle/startBattle";
+import { FriendError, addFriend, blockUser, ensureFriendCode, removeFriend, reportUser } from "./friends/friends";
 
 initializeApp();
 setGlobalOptions({ region: "asia-northeast1", maxInstances: 10 });
@@ -97,6 +99,7 @@ export const generateMonster = onCall({ enforceAppCheck: !IS_EMULATOR, memory: "
         db: getFirestore(),
         vision: visionFor(input.debugVision),
         phash: computePhash,
+        skipLimits: IS_EMULATOR,
         saveSource: async (ownerUid, monsterId, bytes) => {
           const path = `source/${ownerUid}/${monsterId}.jpg`;
           await getStorage().bucket().file(path).save(bytes, { contentType: "image/jpeg", resumable: false });
@@ -350,5 +353,111 @@ export const generateArtSamplesFn = onCall({ enforceAppCheck: !IS_EMULATOR, secr
     return { ok: true, data: { monsterId, ...(await generateArtSamples(individualDeps(), monsterId, input.qualities as ArtQuality[])) } };
   } catch (e) {
     throw new HttpsError("failed-precondition", (e as Error).message);
+  }
+});
+
+// ---------------------------------------------------------------- バトル（§6, §11）
+const BATTLE_ERRORS: Record<string, FunctionsErrorCode> = {
+  invalid_party: "invalid-argument",
+  not_friend: "failed-precondition",
+  blocked: "permission-denied",
+  no_defender: "failed-precondition",
+  rate_limited: "resource-exhausted",
+  daily_limit: "resource-exhausted",
+  not_found: "not-found",
+};
+const PartyInput = z.object({ party: z.array(z.string().min(1).max(64)).length(3) });
+const StartBattleInput = z.object({
+  type: z.enum(["friend", "practice"]),
+  targetId: z.string().max(128).optional(),
+  party: z.array(z.string().min(1).max(64)).length(3),
+  practiceOpponents: z.array(z.string().min(1).max(64)).max(3).optional(),
+});
+
+export const setBattleParty = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(PartyInput, request.data);
+  try {
+    return { ok: true, data: await setBattlePartyCore(getFirestore(), uid, input.party) };
+  } catch (e) {
+    if (e instanceof BattleError) return toHttpsError(e, BATTLE_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+export const startBattle = onCall({ enforceAppCheck: !IS_EMULATOR, memory: "512MiB", timeoutSeconds: 60 }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(StartBattleInput, request.data);
+  try {
+    return { ok: true, data: await startBattleCore({ db: getFirestore() }, uid, input.type, input.targetId ?? null, input.party, input.practiceOpponents) };
+  } catch (e) {
+    if (e instanceof BattleError) return toHttpsError(e, BATTLE_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+// ---------------------------------------------------------------- フレンド・通報（§6.4, §14.3）
+const FRIEND_ERRORS: Record<string, FunctionsErrorCode> = {
+  not_found: "not-found",
+  self: "invalid-argument",
+  blocked: "permission-denied",
+  already: "already-exists",
+  invalid: "invalid-argument",
+};
+
+function displayNameOf(request: CallableRequest): string | null {
+  const name = request.auth?.token?.name;
+  return typeof name === "string" && name.trim() !== "" ? name.trim().slice(0, 40) : null;
+}
+
+export const getFriendCode = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const db = getFirestore();
+  // フレンド一覧で相手に見せる表示名を users に保存しておく（Auth のプロフィール名）
+  const name = displayNameOf(request);
+  if (name) await db.collection("users").doc(uid).set({ displayName: name }, { merge: true });
+  return { ok: true, data: { friendCode: await ensureFriendCode(db, uid) } };
+});
+
+export const addFriendFn = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(z.object({ code: z.string().min(1).max(20) }), request.data);
+  try {
+    return { ok: true, data: await addFriend(getFirestore(), uid, input.code, displayNameOf(request)) };
+  } catch (e) {
+    if (e instanceof FriendError) return toHttpsError(e, FRIEND_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+const TargetInput = z.object({ targetId: z.string().min(1).max(128) });
+
+export const removeFriendFn = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(TargetInput, request.data);
+  await removeFriend(getFirestore(), uid, input.targetId);
+  return { ok: true, data: {} };
+});
+
+export const blockUserFn = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(TargetInput, request.data);
+  try {
+    await blockUser(getFirestore(), uid, input.targetId);
+    return { ok: true, data: {} };
+  } catch (e) {
+    if (e instanceof FriendError) return toHttpsError(e, FRIEND_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+export const reportUserFn = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(z.object({ targetId: z.string().min(1).max(128), reason: z.string().min(1).max(40), detail: z.string().max(500).optional() }), request.data);
+  try {
+    return { ok: true, data: await reportUser(getFirestore(), uid, input.targetId, input.reason, input.detail ?? "") };
+  } catch (e) {
+    if (e instanceof FriendError) return toHttpsError(e, FRIEND_ERRORS);
+    return toHttpsError(e, {});
   }
 });

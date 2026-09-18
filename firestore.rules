@@ -59,10 +59,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // バトルログ: 攻守どちらかの本人のみ
+    // バトルログ: 攻守どちらかの本人のみ（participants で一覧クエリ）
     match /battles/{battleId} {
-      allow read: if signedIn()
-        && (resource.data.attackerId == request.auth.uid || resource.data.defenderId == request.auth.uid);
+      allow read: if signedIn() && request.auth.uid in resource.data.participants;
       allow write: if false;
     }
 
