@@ -21,10 +21,9 @@ app/ios/.symlinks/
 app/android/.gradle/
 app/android/local.properties
 
-# Firebase 設定（人間が配置。機密なので commit しない）
+# Firebase ネイティブ設定（flutterfire configure で再生成可。firebase_options.dart はクライアント公開設定なので commit する）
 app/android/app/google-services.json
 app/ios/Runner/GoogleService-Info.plist
-app/lib/firebase_options.dart
 .env
 *.env.local
 

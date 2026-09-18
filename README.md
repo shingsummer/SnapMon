@@ -10,6 +10,8 @@ functions/       Firebase Cloud Functions（TypeScript、サーバー権威）
 shared-config/   定数・成長曲線・技・つぶやき・フィクスチャ（両者に同梱）
 tools/           Python 参照実装・フィクスチャ生成・検算
 docs/            企画書、ADR
+firebase.json    Functions / Firestore / Storage のデプロイ設定とエミュレータ
+firestore.rules  クライアントは自分のデータの読み取りのみ。monsters_private は完全拒否
 ```
 
 ## セットアップ
@@ -22,9 +24,33 @@ python tools/sim_growth.py            # 企画書 §4.5 / §4.7 の表の検算
 # 2. Functions
 cd functions && npm install && npm test
 
-# 3. Flutter（SDK 導入後）
+# 3. Flutter
 cd app && bash tool/copy_config.sh && flutter pub get && flutter test
 ```
+
+### Firebase（初回のみ）
+
+Firebase プロジェクト `snap-mon-7a9bf`（Blaze）。ネイティブ設定ファイルは git 管理外なので、クローン直後は再生成する。
+
+```bash
+npm install -g firebase-tools
+dart pub global activate flutterfire_cli
+firebase login
+cd app && flutterfire configure --platforms=android,ios
+```
+
+`app/lib/firebase_options.dart` はクライアント公開設定なので commit している。`google-services.json` / `GoogleService-Info.plist` は上記コマンドで再生成する。
+
+### Android 実機・エミュレータで動かすには
+
+Android Studio を入れて SDK を導入する（`flutter doctor` の Android toolchain が √ になること）。Google サインインには、デバッグ署名の SHA-1 を Firebase コンソールの Android アプリに登録する必要がある。
+
+```bash
+cd app/android && ./gradlew signingReport     # SHA1 を控えてコンソールに登録
+cd app && bash tool/copy_config.sh && flutter run
+```
+
+デバッグビルドは App Check のデバッグプロバイダを使う。初回起動時にログへ出るデバッグトークンを Firebase コンソール（App Check → アプリ → デバッグトークンを管理）に登録する。
 
 ## 定数を変えるときの手順
 
@@ -35,4 +61,4 @@ cd app && bash tool/copy_config.sh && flutter pub get && flutter test
 
 ## 開発フェーズ
 
-企画書 §13。現在: **P0 基盤**。
+企画書 §13。現在: **P0 基盤**（サインイン実装済み、実機確認待ち）。

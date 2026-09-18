@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
 
 /// S01 スプラッシュ／ログイン（企画書 §8.1）。
-/// Apple / Google サインインと生年入力は Firebase 接続後に有効化する。
+/// 生年入力（年齢確認）は初回サインイン直後のプロフィール作成画面で行う（P0 後半）。
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,9 +16,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _agreed = false;
 
+  bool get _showApple => defaultTargetPlatform == TargetPlatform.iOS;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final auth = ref.watch(authProvider).state;
+    final notifier = ref.read(authProvider);
+    final canSubmit = _agreed && !auth.busy;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -33,28 +39,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 48),
               CheckboxListTile(
                 value: _agreed,
-                onChanged: (v) => setState(() => _agreed = v ?? false),
+                onChanged: auth.busy ? null : (v) => setState(() => _agreed = v ?? false),
                 title: const Text('利用規約とプライバシーポリシーに同意する'),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: null, // Firebase 接続後に有効化
-                icon: const Icon(Icons.apple),
-                label: const Text('Apple でサインイン'),
-              ),
-              const SizedBox(height: 8),
+              if (_showApple) ...[
+                FilledButton.icon(
+                  key: const Key('apple-sign-in'),
+                  onPressed: canSubmit ? notifier.signInWithApple : null,
+                  icon: const Icon(Icons.apple),
+                  label: const Text('Apple でサインイン'),
+                ),
+                const SizedBox(height: 8),
+              ],
               FilledButton.tonalIcon(
-                onPressed: null, // Firebase 接続後に有効化
+                key: const Key('google-sign-in'),
+                onPressed: canSubmit ? notifier.signInWithGoogle : null,
                 icon: const Icon(Icons.g_mobiledata),
                 label: const Text('Google でサインイン'),
               ),
+              if (auth.busy) ...[
+                const SizedBox(height: 16),
+                const Center(child: CircularProgressIndicator()),
+              ],
+              if (auth.error != null) ...[
+                const SizedBox(height: 16),
+                Text(auth.error!, textAlign: TextAlign.center, style: TextStyle(color: theme.colorScheme.error)),
+              ],
               if (kDebugMode) ...[
                 const SizedBox(height: 24),
                 OutlinedButton(
                   key: const Key('dev-sign-in'),
-                  onPressed: _agreed ? () => ref.read(authProvider).signInDev() : null,
-                  child: const Text('開発用サインイン（Firebase 未接続）'),
+                  onPressed: canSubmit ? notifier.signInDev : null,
+                  child: const Text('開発用サインイン（Firebase を使わない）'),
                 ),
               ],
             ],
