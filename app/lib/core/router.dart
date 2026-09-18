@@ -9,6 +9,7 @@ import '../features/monster/birth_screen.dart';
 import '../features/monster/detail_screen.dart';
 import '../features/monster/models.dart';
 import '../features/monster/ranch_screen.dart';
+import '../features/training/training_screen.dart';
 
 /// 画面ID は企画書 §8.1 に対応。
 class AppRoutes {
@@ -18,6 +19,7 @@ class AppRoutes {
   static const birth = '/birth/:id'; // S05
   static const ranch = '/ranch'; // S06
   static const monster = '/monster/:id'; // S07
+  static const train = '/train/:id'; // S08
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -45,6 +47,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.ranch, builder: (_, __) => const RanchScreen()),
       GoRoute(path: AppRoutes.monster, builder: (_, state) => MonsterDetailScreen(monsterId: state.pathParameters['id']!)),
+      GoRoute(path: AppRoutes.train, builder: (_, state) => TrainingScreen(monsterId: state.pathParameters['id']!)),
     ],
   );
 });

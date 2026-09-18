@@ -7,11 +7,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snapmon/core/config.dart';
 import 'package:snapmon/domain/growth.dart';
 import 'package:snapmon/features/auth/auth_provider.dart';
 import 'package:snapmon/features/auth/auth_repository.dart';
 import 'package:snapmon/features/monster/monster_repository.dart';
+import 'package:snapmon/features/steps/step_source.dart';
+import 'package:snapmon/features/steps/steps_sync.dart';
 import 'package:snapmon/main.dart';
 
 GameConfig _loadConfigFromRepo() {
@@ -49,6 +52,13 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
+class NoStepSource implements StepSource {
+  @override
+  Future<bool> requestPermission() async => true;
+  @override
+  Future<List<StepSegment>> fetchSegments(DateTime since, DateTime until) async => const [];
+}
+
 Future<FakeAuthRepository> _pumpApp(WidgetTester tester, {Map<String, dynamic>? userDoc}) async {
   final repo = FakeAuthRepository();
   await tester.pumpWidget(
@@ -58,6 +68,9 @@ Future<FakeAuthRepository> _pumpApp(WidgetTester tester, {Map<String, dynamic>? 
         authRepositoryProvider.overrideWithValue(repo),
         userDocProvider.overrideWith((ref) => Stream.value(userDoc)),
         monstersProvider.overrideWith((ref) => Stream.value(const [])),
+        inventoryProvider.overrideWith((ref) => Stream.value(const {})),
+        murmurTextsProvider.overrideWith((ref) async => const {'p001': '散歩のあとは機嫌がいい'}),
+        stepSourceProvider.overrideWithValue(NoStepSource()),
       ],
       child: const SnapMonApp(),
     ),
@@ -72,6 +85,8 @@ Future<void> _agree(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   testWidgets('dev sign in -> home -> sign out', (tester) async {
     await _pumpApp(tester);
     expect(find.text('SnapMon'), findsOneWidget);
@@ -121,13 +136,15 @@ void main() {
 
   testWidgets('snap quota exhausted disables the shoot button', (tester) async {
     final today = jstDateKey(DateTime.now());
-    await _pumpApp(tester, userDoc: {'dailyState': {'date': today, 'snapsUsed': 3}});
+    await _pumpApp(tester, userDoc: {'dailyState': {'date': today, 'snapsUsed': 3, 'stepsToday': 4321}, 'vpBalance': 77});
     await _agree(tester);
     await tester.tap(find.byKey(const Key('dev-sign-in')));
     await tester.pumpAndSettle();
 
     expect(find.text('残り 0 / 3 枚'), findsOneWidget);
+    expect(find.textContaining('活力ポイント'), findsOneWidget);
     expect(find.text('今日はおしまい'), findsOneWidget);
+    expect(find.text('4321 歩 ・ 活力ポイント 77 VP'), findsOneWidget);
     expect(tester.widget<FloatingActionButton>(find.byKey(const Key('shoot'))).onPressed, isNull);
   });
 

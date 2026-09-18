@@ -24,6 +24,8 @@ dependencies:
   google_mlkit_face_detection: ^0.15.1
   flutter_svg: ^2.3.0
   cloud_firestore: ^6.10.0
+  health: ^13.3.2
+  shared_preferences: ^2.5.5
   # P1 で追加: camera, image, exif, google_mlkit_face_detection
   # P2 で追加: pedometer, health, drift
 

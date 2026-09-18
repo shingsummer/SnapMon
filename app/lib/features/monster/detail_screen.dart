@@ -1,20 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/config.dart';
+import '../../domain/growth.dart' as growth;
 import 'models.dart';
 import 'monster_art.dart';
 import 'monster_repository.dart';
 
-/// S07 モンスター詳細。ステータス、成長グラフ（実測のみ・予測線なし §4.2）、技。
-/// トレーニング／アイテム使用は P2、師匠・弟子は P5。
+/// S07 モンスター詳細。ステータス、成長グラフ（実測のみ・予測線なし §4.2）、技、
+/// トレーニング／パートナー指名／エサ。師匠・弟子は P5。
 class MonsterDetailScreen extends ConsumerWidget {
   const MonsterDetailScreen({super.key, required this.monsterId});
   final String monsterId;
+
+  Future<void> _run(BuildContext context, Future<void> Function() action, String okMessage) async {
+    try {
+      await action();
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(okMessage)));
+    } on MonsterApiException catch (e) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final async = ref.watch(monsterProvider(monsterId));
+    final user = ref.watch(userDocProvider).value;
+    final inventory = ref.watch(inventoryProvider).value ?? const {};
+    final murmurs = ref.watch(murmurTextsProvider).value ?? const {};
+    final cfg = ref.watch(gameConfigProvider).value;
+    final personalities = cfg?.personalities;
+    final api = ref.read(monsterApiProvider);
+
     return Scaffold(
       appBar: AppBar(title: Text(async.value?.displayName ?? '')),
       body: async.when(
@@ -22,6 +41,14 @@ class MonsterDetailScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('読み込みに失敗しました\n$e', textAlign: TextAlign.center)),
         data: (m) {
           if (m == null) return const Center(child: Text('見つかりません'));
+          final isPartner = user?['partnerMonsterId'] == m.id;
+          final expNext = cfg == null ? null : growth.expToNext(cfg, m.level);
+          final murmur = m.lastMurmurTextId == null ? null : murmurs[m.lastMurmurTextId!];
+          final foods = inventory.entries.where((e) => e.value > 0 && (e.key == 'food_${m.family}' || (m.subFamily != null && e.key == 'food_${m.subFamily}'))).toList();
+          final personalityName = m.personalityRevealed && personalities != null && m.personality < personalities.length
+              ? (personalities[m.personality] as Map)['name'] as String?
+              : null;
+
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -30,13 +57,62 @@ class MonsterDetailScreen extends ConsumerWidget {
               Center(
                 child: Wrap(
                   spacing: 8,
+                  runSpacing: 4,
+                  alignment: WrapAlignment.center,
                   children: [
                     Chip(label: Text('Lv${m.level}')),
                     Chip(label: Text(m.familyLabel)),
                     Chip(label: Text('${m.elementLabel}属性')),
+                    if (personalityName != null) Chip(label: Text(personalityName)),
+                    if (isPartner) const Chip(avatar: Icon(Icons.favorite, size: 16), label: Text('パートナー')),
                     if (m.sourceLabel.isNotEmpty) Chip(label: Text('出自: ${m.sourceLabel}')),
                   ],
                 ),
+              ),
+              if (murmur != null) ...[
+                const SizedBox(height: 8),
+                Center(child: Text('「$murmur」', style: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic))),
+              ],
+              const SizedBox(height: 12),
+              if (expNext != null && m.level < 50) ...[
+                Text('経験値 ${m.exp} / $expNext', style: theme.textTheme.bodySmall),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(value: (m.exp / expNext).clamp(0.0, 1.0), minHeight: 8),
+                ),
+                const SizedBox(height: 8),
+              ],
+              Text('疲労 ${m.fatigue}', style: theme.textTheme.bodySmall),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(value: (m.fatigue / 100).clamp(0.0, 1.0), minHeight: 8, color: theme.colorScheme.tertiary),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton.icon(
+                    key: const Key('go-train'),
+                    onPressed: m.isStored ? null : () => context.push('/train/${m.id}'),
+                    icon: const Icon(Icons.fitness_center),
+                    label: const Text('トレーニング'),
+                  ),
+                  if (!isPartner)
+                    OutlinedButton.icon(
+                      key: const Key('set-partner'),
+                      onPressed: m.isStored ? null : () => _run(context, () => api.setPartner(m.id), '${m.displayName} をパートナーにした'),
+                      icon: const Icon(Icons.favorite_border),
+                      label: const Text('パートナーにする'),
+                    ),
+                  for (final f in foods)
+                    OutlinedButton.icon(
+                      key: Key('feed-${f.key}'),
+                      onPressed: () => _run(context, () => api.useItem(m.id, f.key), '${itemLabel(f.key)} をあげた'),
+                      icon: const Icon(Icons.restaurant),
+                      label: Text('${itemLabel(f.key)} ×${f.value}'),
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
               Text('ステータス（合計 ${m.total}）', style: theme.textTheme.titleMedium),
@@ -70,8 +146,6 @@ class MonsterDetailScreen extends ConsumerWidget {
               for (final id in m.moves) ListTile(dense: true, leading: const Icon(Icons.flash_on), title: Text(id)),
               if (m.inheritedMoveId != null)
                 ListTile(dense: true, leading: const Icon(Icons.auto_awesome), title: Text('師匠の型: ${m.inheritedMoveId}')),
-              const SizedBox(height: 16),
-              Text('トレーニングは P2 で追加されます', style: theme.textTheme.bodySmall),
             ],
           );
         },
@@ -91,8 +165,9 @@ class _GrowthPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
       ..color = grid
-      ..strokeWidth = 1;
-    canvas.drawRect(Offset.zero & size, gridPaint..style = PaintingStyle.stroke);
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+    canvas.drawRect(Offset.zero & size, gridPaint);
     if (history.isEmpty) return;
     const maxLevel = 50;
     final maxTotal = (history.map((h) => h.total).reduce((a, b) => a > b ? a : b) * 1.2).clamp(100, 5994).toDouble();

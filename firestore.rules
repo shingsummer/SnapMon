@@ -22,6 +22,12 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow write: if false;
       }
+
+      // 歩数区間（受理・拒否の記録）。投入は submitSteps 経由
+      match /stepSegments/{segmentId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
     }
 
     // モンスター（公開部分）: オーナーのみ読める。書き込みは Functions のみ

@@ -28,6 +28,14 @@ const elementJa = <String, String>{
 const statOrder = ['hp', 'atk', 'def', 'spa', 'spd', 'luk'];
 const statJa = <String, String>{'hp': '体力', 'atk': '攻撃', 'def': '防御', 'spa': '特攻', 'spd': '速さ', 'luk': '運'};
 
+/// トレーニング種別（shared-config/constants.json の trainings と対応）
+const trainingJa = <String, ({String name, String main, String sub, String fatigue})>{
+  'dash': (name: 'ダッシュ', main: 'spd', sub: 'atk', fatigue: '中'),
+  'labor': (name: '力仕事', main: 'atk', sub: 'hp', fatigue: '高'),
+  'meditate': (name: '瞑想', main: 'spa', sub: 'luk', fatigue: '低'),
+  'endure': (name: '耐久', main: 'def', sub: 'hp', fatigue: '高'),
+};
+
 Map<String, int> _intStats(Map<dynamic, dynamic>? m) =>
     {for (final s in statOrder) s: ((m?[s] as num?) ?? 0).round()};
 
@@ -56,9 +64,12 @@ class Monster {
     required this.artBucketId,
     required this.status,
     required this.fatigue,
+    required this.personality,
     required this.personalityRevealed,
+    required this.trainingCount,
     required this.inheritedMoveId,
     required this.mentorId,
+    required this.lastMurmurTextId,
     required this.createdAt,
   });
 
@@ -77,9 +88,12 @@ class Monster {
   final String artBucketId;
   final String status;
   final int fatigue;
+  final int personality;
   final bool personalityRevealed;
+  final int trainingCount;
   final String? inheritedMoveId;
   final String? mentorId;
+  final String? lastMurmurTextId;
   final DateTime? createdAt;
 
   bool get isNamed => name.isNotEmpty;
@@ -88,6 +102,7 @@ class Monster {
       subFamily == null ? (familyJa[family] ?? family) : '${familyJa[family] ?? family}／${familyJa[subFamily] ?? subFamily}';
   String get elementLabel => elementJa[element] ?? element;
   int get total => stats.values.fold(0, (a, b) => a + b);
+  bool get isStored => status == 'stored';
 
   /// P3 のアートバケットが ready になるまでのプレースホルダ（tools/gen_placeholder_art.py）
   String get placeholderAsset => 'assets/art/placeholder/${family}_$element.svg';
@@ -114,9 +129,12 @@ class Monster {
       artBucketId: (d['artBucketId'] as String?) ?? '',
       status: (d['status'] as String?) ?? 'active',
       fatigue: ((d['fatigue'] as num?) ?? 0).toInt(),
+      personality: ((d['personality'] as num?) ?? 0).toInt(),
       personalityRevealed: (d['personalityRevealed'] as bool?) ?? false,
+      trainingCount: ((d['trainingCount'] as num?) ?? 0).toInt(),
       inheritedMoveId: (d['inheritedMove'] as Map?)?['moveId'] as String?,
       mentorId: d['mentorId'] as String?,
+      lastMurmurTextId: d['lastMurmurTextId'] as String?,
       createdAt: (d['createdAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -169,8 +187,107 @@ class ItemGrant {
   final String type;
   final int count;
 
-  String get label {
-    if (type.startsWith('food_')) return '${familyJa[type.substring(5)] ?? type}のエサ';
-    return type;
+  String get label => itemLabel(type);
+}
+
+String itemLabel(String type) {
+  if (type.startsWith('food_')) return '${familyJa[type.substring(5)] ?? type}のエサ';
+  if (type == 'fatigue_cure') return '疲労回復薬';
+  if (type == 'bond_capsule') return '絆カプセル';
+  return type;
+}
+
+/// submitSteps の戻り値
+class SubmitStepsResult {
+  SubmitStepsResult({
+    required this.acceptedSteps,
+    required this.stepsToday,
+    required this.vpGained,
+    required this.vpBalance,
+    required this.walkBonusApplied,
+    required this.partnerMonsterId,
+    required this.partnerExp,
+    required this.partnerLevelUps,
+    required this.murmurTextId,
+  });
+
+  final int acceptedSteps;
+  final int stepsToday;
+  final int vpGained;
+  final int vpBalance;
+  final bool walkBonusApplied;
+  final String? partnerMonsterId;
+  final int partnerExp;
+  final int partnerLevelUps;
+  final String? murmurTextId;
+
+  factory SubmitStepsResult.fromJson(Map<dynamic, dynamic> j) {
+    final p = j['partner'] as Map?;
+    return SubmitStepsResult(
+      acceptedSteps: (j['acceptedSteps'] as num).toInt(),
+      stepsToday: (j['stepsToday'] as num).toInt(),
+      vpGained: (j['vpGained'] as num).toInt(),
+      vpBalance: (j['vpBalance'] as num).toInt(),
+      walkBonusApplied: (j['walkBonusApplied'] as bool?) ?? false,
+      partnerMonsterId: p?['monsterId'] as String?,
+      partnerExp: ((p?['exp'] as num?) ?? 0).toInt(),
+      partnerLevelUps: ((p?['levelUps'] as num?) ?? 0).toInt(),
+      murmurTextId: j['murmurTextId'] as String?,
+    );
   }
+}
+
+/// train の戻り値
+class TrainResult {
+  TrainResult({
+    required this.trained,
+    required this.message,
+    required this.statsDelta,
+    required this.fatigue,
+    required this.level,
+    required this.levelUps,
+    required this.vpBalance,
+    required this.trainingsToday,
+    required this.personalityRevealed,
+    required this.murmurTextId,
+  });
+
+  final bool trained;
+  final String? message;
+  final Map<String, int> statsDelta;
+  final int fatigue;
+  final int level;
+  final int levelUps;
+  final int vpBalance;
+  final int trainingsToday;
+  final bool personalityRevealed;
+  final String? murmurTextId;
+
+  factory TrainResult.fromJson(Map<dynamic, dynamic> j) => TrainResult(
+        trained: (j['trained'] as bool?) ?? false,
+        message: j['message'] as String?,
+        statsDelta: {for (final s in statOrder) s: ((j['statsDelta']?[s] as num?) ?? 0).round()},
+        fatigue: (j['fatigue'] as num).toInt(),
+        level: (j['level'] as num).toInt(),
+        levelUps: ((j['levelUps'] as num?) ?? 0).toInt(),
+        vpBalance: (j['vpBalance'] as num).toInt(),
+        trainingsToday: (j['trainingsToday'] as num).toInt(),
+        personalityRevealed: (j['personalityRevealed'] as bool?) ?? false,
+        murmurTextId: j['murmurTextId'] as String?,
+      );
+}
+
+class UseItemResult {
+  UseItemResult({required this.itemType, required this.remaining, required this.levelUps, required this.fatigue});
+  final String itemType;
+  final int remaining;
+  final int levelUps;
+  final int fatigue;
+
+  factory UseItemResult.fromJson(Map<dynamic, dynamic> j) => UseItemResult(
+        itemType: j['itemType'] as String,
+        remaining: (j['remaining'] as num).toInt(),
+        levelUps: ((j['levelUps'] as num?) ?? 0).toInt(),
+        fatigue: ((j['fatigue'] as num?) ?? 0).toInt(),
+      );
 }
