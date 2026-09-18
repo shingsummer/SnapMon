@@ -72,6 +72,12 @@ describe("individual art", () => {
     expect(p).toContain("#1e88e5, #ffffff, #37474f");
     expect(p).not.toMatch(/Do not/);
   });
+  it("reflects the personality as expression and pose", () => {
+    const shy = buildIndividualPrompt({ family: "aqua", subFamily: null, element: "water", colors: ["1e88e5"], sourceLabel: "mug", personality: 3 });
+    expect(shy).toContain("Expression and pose: timid and shy");
+    const none = buildIndividualPrompt({ family: "aqua", subFamily: null, element: "water", colors: ["1e88e5"], sourceLabel: "mug" });
+    expect(none).not.toContain("Expression and pose");
+  });
   it("FakeImageGenerator.generateFromImage tints by the photo's average color", async () => {
     const src = await new Jimp({ width: 16, height: 16, color: 0x2040ffff }).getBuffer("image/png");
     const r = await new FakeImageGenerator().generateFromImage("x", src, { size: "32x32", quality: "low" });

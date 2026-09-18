@@ -38,6 +38,15 @@ export interface IndividualPromptInput {
   element: Element;
   colors: string[];
   sourceLabel: string;
+  /** 性格（0..7）。表情・ポーズに反映する（§16.3 Personality vibe）。名前は非開示のままで、絵でうっすら伝わる程度 */
+  personality?: number;
+}
+
+export function personalityVibe(personality: number | undefined): string | null {
+  if (personality === undefined) return null;
+  const { personalities } = loadConfig();
+  const p = personalities[personality] as { artVibe?: string } | undefined;
+  return p?.artVibe ?? null;
 }
 
 /** 写真参照用プロンプト。否定文は使わない（安全フィルタ対策） */
@@ -46,6 +55,7 @@ export function buildIndividualPrompt(input: IndividualPromptInput): string {
     ? `${FAMILY_DESCRIPTION[input.family]}, with traits of ${input.subFamily} (${FAMILY_DESCRIPTION[input.subFamily]})`
     : FAMILY_DESCRIPTION[input.family];
   const colors = input.colors.slice(0, 3).map((c) => `#${c}`).join(", ");
+  const vibe = personalityVibe(input.personality);
   return [
     "Transform the object in the reference photo into a single original fantasy creature for a mobile monster-raising game.",
     `Keep the object's silhouette, colors, texture and distinctive parts recognizable in the creature's design (the object is: ${input.sourceLabel}).`,
@@ -53,7 +63,8 @@ export function buildIndividualPrompt(input: IndividualPromptInput): string {
     `Element: ${input.element} (${ELEMENT_DESCRIPTION[input.element]}).`,
     `Primary colors: ${colors}.`,
     "Style: clean cel-shaded illustration, soft outline, full body, centered, facing slightly left, plain white background, no text, no watermark.",
-    "The creature is a cute, non-human mascot design created for this game, an animal-like fantasy being with simple friendly eyes.",
+    ...(vibe ? [`Expression and pose: ${vibe}.`] : []),
+    "The creature is a cute, non-human mascot design created for this game, an animal-like fantasy being with simple expressive eyes.",
   ].join("\n");
 }
 
@@ -87,6 +98,7 @@ export async function processMonsterArt(deps: IndividualDeps, monsterId: string,
       element: snap.get("element") as Element,
       colors: (snap.get("sourceColors") as string[] | undefined) ?? ["808080"],
       sourceLabel: (snap.get("sourceLabel") as string | undefined) ?? "object",
+      personality: snap.get("personality") as number | undefined,
     };
   });
   if (!claim.ok) return { outcome: claim.outcome, monsterId, attempts: "attempts" in claim ? claim.attempts : undefined };
@@ -140,6 +152,7 @@ export async function generateArtSamples(deps: IndividualDeps, monsterId: string
     element: snap.get("element") as Element,
     colors: (snap.get("sourceColors") as string[] | undefined) ?? ["808080"],
     sourceLabel: (snap.get("sourceLabel") as string | undefined) ?? "object",
+    personality: snap.get("personality") as number | undefined,
   });
   const image = await deps.loadImage(source);
   const out: Record<string, { path: string; costUsd: number }> = {};
