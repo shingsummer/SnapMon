@@ -26,7 +26,23 @@ cd functions && npm install && npm test
 
 # 3. Flutter
 cd app && bash tool/copy_config.sh && flutter pub get && flutter test
+
+# 4. プレースホルダ画像（ファミリー×属性 84 枚の SVG）
+python tools/gen_placeholder_art.py
 ```
+
+### ローカルエミュレータで通しで動かす（Vision API を呼ばない）
+
+```bash
+# ターミナル A: Functions + Firestore エミュレータ（Java が必要。Android Studio 同梱の jbr でよい）
+cd functions && npm run build && cd .. && firebase emulators:start --only functions,firestore --project snap-mon-7a9bf
+
+# ターミナル B: アプリをエミュレータ接続モードで起動（Android エミュレータからは 10.0.2.2 に接続）
+cd app && bash tool/copy_config.sh && flutter run --dart-define=USE_EMULATOR=true
+```
+
+エミュレータ上の generateMonster は Vision を呼ばず「マグカップ／青」の固定結果を返す（`FakeVisionClient`）。
+Firestore エミュレータでの結合テストは `cd functions && npm run test:integration`。
 
 ### Firebase（初回のみ）
 
@@ -61,4 +77,4 @@ cd app && bash tool/copy_config.sh && flutter run
 
 ## 開発フェーズ
 
-企画書 §13。現在: **P0 基盤**（エミュレータで起動確認済み。Google サインインの実機確認が残り）。
+企画書 §13。P0 完了（2026-09-18）。現在: **P1 誕生**（サーバー・アプリ実装済み。エミュレータでの通し確認と Vision API 有効化が残り）。

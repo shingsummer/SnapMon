@@ -12,6 +12,7 @@ const useEmulator = bool.fromEnvironment('USE_EMULATOR');
 FirebaseFunctions functions() => FirebaseFunctions.instanceFor(region: functionsRegion);
 
 void configureEmulatorsIfNeeded() {
+  debugPrint('[SnapMon] USE_EMULATOR=$useEmulator');
   if (!useEmulator) return;
   final host = defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost';
   functions().useFunctionsEmulator(host, 5001);

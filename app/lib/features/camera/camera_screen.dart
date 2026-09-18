@@ -82,6 +82,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
       if (!mounted) return;
       context.go('/birth/${result.monsterId}', extra: result);
     } on MonsterApiException catch (e) {
+      debugPrint('[SnapMon] api error code=${e.code} reason=${e.reason}');
       _fail(e.message);
     } catch (e) {
       _fail('うまくいきませんでした。もう一度撮ってみてください');
@@ -90,6 +91,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
   }
 
   void _fail(String message) {
+    debugPrint('[SnapMon] shoot failed: $message');
     if (!mounted) return;
     setState(() {
       _error = message;
@@ -157,17 +159,21 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Center(
-            child: SizedBox(
-              width: 76,
-              height: 76,
-              child: FloatingActionButton.large(
-                key: const Key('shutter'),
-                onPressed: _phase == _Phase.ready ? _shoot : null,
-                shape: const CircleBorder(),
-                child: const Icon(Icons.camera, size: 36),
+          // Center は縦にも広がって body を潰すので、高さが子に従う Row にする
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 76,
+                height: 76,
+                child: FloatingActionButton.large(
+                  key: const Key('shutter'),
+                  onPressed: _phase == _Phase.ready ? _shoot : null,
+                  shape: const CircleBorder(),
+                  child: const Icon(Icons.camera, size: 36),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
