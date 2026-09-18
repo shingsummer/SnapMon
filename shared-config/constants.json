@@ -11,7 +11,9 @@
   "friendBattleRewardsPerDay": 3,
   "partnerChangesPerDay": 3,
   "battleMaxTurnsPerDuel": 10,
-  "battleDamageScale": 0.4,
+  "battleDamageScale": 0.85,
+  "battleLevelFactorBase": 10,
+  "_battleDamageDoc": "damage = power × atk/(atk+def) × battleDamageScale × (battleLevelFactorBase+level)/(battleLevelFactorBase+50) × 属性 × 会心 × rand。§6.2 の攻÷守は低レベルで比率が極端になるため比率形に変更（βで調整）",
   "battleCritMultiplier": 1.5,
   "battleCritDivisor": 1000,
   "battleDamageRandRange": [

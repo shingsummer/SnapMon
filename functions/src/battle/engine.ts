@@ -1,7 +1,7 @@
 // バトル解決（企画書 v1.3 §6.1〜§6.3）。純ロジック・決定論（同じ seed と入力なら同じログ）。
 // - 1 対 1、ターン制、1 対戦（デュエル）最大 battleMaxTurnsPerDuel ターン、3 体パーティの勝ち抜き
 // - 行動順: 優先度 → SPD → 同値は乱数
-// - ダメージ: (power × 攻/守) × 0.4 × 属性 × 会心 × rand(0.9, 1.1)。物理は ATK/DEF、属性技（special）は SPA/相手 SPA
+// - ダメージ: power × 攻/(攻+守) × 0.85 × レベル係数 × 属性 × 会心 × rand(0.9, 1.1)。物理は ATK/DEF、属性技（special）は SPA/相手 SPA（§6.2 の比率形、baseDamage 参照）
 // - 両者オート（非同期対戦のため）。AI は期待ダメージ最大、HP 50% 未満で回復、初手でバフ
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -29,6 +29,11 @@ export function loadMovesFile(): MovesFile {
   if (!movesCache) movesCache = JSON.parse(fs.readFileSync(path.join(configDir(), "moves.json"), "utf-8")) as MovesFile;
   return movesCache;
 }
+
+const FAMILY_JA: Record<string, string> = {
+  beast: "ビースト", plant: "プラント", metal: "メタル", aqua: "アクア", rock: "ロック", spark: "スパーク",
+  ghost: "ゴースト", food: "フード", paper: "ペーパー", cloth: "クロス", toy: "トイ", enigma: "エニグマ",
+};
 
 export function moveById(id: string): MoveDef | undefined {
   return loadMovesFile().moves.find((m) => m.id === id);
@@ -123,16 +128,28 @@ function typeMultiplier(moveElement: Element | null, defender: Element): number 
   return chart[moveElement]?.[defender] ?? 1;
 }
 
+/**
+ * 基礎ダメージ（乱数・会心・属性なし）。
+ * 企画書 §6.2 の「攻÷守」は Lv1 の初期値（5〜60）だと比率が 10 倍を超えて一撃で終わるため、
+ * 攻÷(攻＋守) の比率形にレベル係数を掛ける。Lv50・500 同士（比率 0.5）で power 200 → 85 = HP の 17%（§6.2 の狙いどおり）。
+ */
+function baseDamage(user: Fighter, target: Fighter, m: MoveDef): number {
+  const { constants: C } = loadConfig();
+  const scale = C.battleDamageScale as number;
+  const lf = C.battleLevelFactorBase as number;
+  const atk = m.category === "physical" ? effStat(user, "atk") : effStat(user, "spa");
+  const def = m.category === "physical" ? effStat(target, "def") : effStat(target, "spa");
+  const ratio = atk / Math.max(1, atk + def);
+  const levelFactor = (lf + user.c.level) / (lf + 50);
+  const bonus = user.c.moveBonus?.[m.id] ?? 1;
+  return m.power * ratio * scale * levelFactor * bonus;
+}
+
 /** 期待ダメージ（AI 用、乱数なし） */
 function expectedDamage(user: Fighter, target: Fighter, m: MoveDef): number {
   if (m.category === "support" || m.power <= 0) return 0;
-  const { constants: C } = loadConfig();
-  const scale = C.battleDamageScale as number;
-  const atk = m.category === "physical" ? effStat(user, "atk") : effStat(user, "spa");
-  const def = m.category === "physical" ? effStat(target, "def") : effStat(target, "spa");
   const acc = (m.effect?.accuracy as number | undefined) ?? 1;
-  const bonus = user.c.moveBonus?.[m.id] ?? 1;
-  return (m.power * atk) / Math.max(1, def) * scale * typeMultiplier(m.element, target.c.element) * acc * bonus;
+  return baseDamage(user, target, m) * typeMultiplier(m.element, target.c.element) * acc;
 }
 
 function chooseMove(user: Fighter, target: Fighter, turnInDuel: number, rng: XorShift128): MoveDef {
@@ -159,7 +176,6 @@ export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combata
   const { constants: C } = loadConfig();
   const rng = new XorShift128(seed);
   const maxTurns = C.battleMaxTurnsPerDuel as number;
-  const scale = C.battleDamageScale as number;
   const critMul = C.battleCritMultiplier as number;
   const critDiv = C.battleCritDivisor as number;
   const [rlo, rhi] = C.battleDamageRandRange as [number, number];
@@ -265,14 +281,11 @@ export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combata
       snap("miss", `${target.c.name} には当たらなかった`, { side: user.side }, turn);
       return;
     }
-    const atk = m.category === "physical" ? effStat(user, "atk") : effStat(user, "spa");
-    const def = m.category === "physical" ? effStat(target, "def") : effStat(target, "spa");
     const typeMod = typeMultiplier(m.element, target.c.element);
     const critChance = effStat(user, "luk") / critDiv + ((e.critBonus as number | undefined) ?? 0);
     const crit = rng.nextDouble() < critChance;
     const r = rng.randRange(rlo, rhi);
-    const bonus = user.c.moveBonus?.[m.id] ?? 1;
-    let dmg = Math.floor(((m.power * atk) / Math.max(1, def)) * scale * typeMod * (crit ? critMul : 1) * r * bonus);
+    let dmg = Math.floor(baseDamage(user, target, m) * typeMod * (crit ? critMul : 1) * r);
     dmg = Math.max(1, dmg);
     target.hp = Math.max(0, target.hp - dmg);
     const eff = typeMod > 1 ? "効果はばつぐんだ！ " : typeMod < 1 ? "効果はいまひとつ… " : "";
@@ -350,6 +363,6 @@ export function combatantFromDoc(id: string, d: Record<string, unknown>): Combat
     const { constants: C } = loadConfig();
     if (inherited.generation >= (C.legacyMoveGenerations as number)) moveBonus[inherited.moveId] = 1 + (C.legacyMovePowerBonus as number);
   }
-  const name = ((d.name as string) || "") !== "" ? (d.name as string) : `${d.family as string}のこ`;
+  const name = ((d.name as string) || "") !== "" ? (d.name as string) : `${FAMILY_JA[d.family as string] ?? (d.family as string)}のこ`;
   return { id, name, family: d.family as Family, element: d.element as Element, level: (d.level as number) ?? 1, stats, moves, moveBonus };
 }

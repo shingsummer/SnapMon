@@ -98,7 +98,15 @@ describe("resolveBattle", () => {
     expect(c.moves).toEqual(["water_shot", "neutral_tackle", "beast_bite"]);
     expect(c.moveBonus?.beast_bite).toBeCloseTo(1.1);
     expect(c.name).toBe("Shizuku");
-    expect(combatantFromDoc("m2", { ...doc, name: "" }).name).toBe("aquaのこ");
+    expect(combatantFromDoc("m2", { ...doc, name: "" }).name).toBe("アクアのこ");
+  });
+
+  it("low-level monsters do not one-shot each other (level factor)", () => {
+    const lv1 = (id: string, hp: number, atk: number, def: number) => ({ ...mk(id, "neutral", { hp, atk, def, spa: atk, luk: 0 }, ["neutral_tackle"]), level: 1 });
+    const r = resolveBattle(seed, [lv1("a", 40, 58, 10)], [lv1("b", 30, 8, 8)]);
+    const hits = r.events.filter((e) => e.type === "hit" && e.damage !== undefined);
+    expect(hits.length).toBeGreaterThan(1);
+    for (const h of hits) expect(h.damage!).toBeLessThan(30);
   });
 
   it("party of three wins by elimination and reports remaining count", () => {

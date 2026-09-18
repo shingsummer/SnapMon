@@ -232,11 +232,11 @@ export const rest = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) =>
 
 // ---------------------------------------------------------------- アート生成（§3.6, §14.2）
 function imageGenerator(): ImageGenerator {
-  const key = IS_EMULATOR ? process.env.OPENAI_API_KEY ?? "" : OPENAI_API_KEY.value();
-  if (!key) {
-    if (IS_EMULATOR) return new FakeImageGenerator(500);
-    throw new Error("OPENAI_API_KEY is not set");
-  }
+  // エミュレータは既定で疑似生成。本物を使うときだけ SNAPMON_REAL_ART=1 を .env.local 等で指定する
+  // （エミュレータは Secret Manager から本物のキーを読めてしまうため、明示しない限り課金しない）
+  if (IS_EMULATOR && process.env.SNAPMON_REAL_ART !== "1") return new FakeImageGenerator(500);
+  const key = OPENAI_API_KEY.value();
+  if (!key) throw new Error("OPENAI_API_KEY is not set");
   const { constants: C } = loadConfig();
   return new OpenAIImageGenerator(key, OPENAI_IMAGE_MODEL.value(), C.artCostUsd as Record<string, number>);
 }
