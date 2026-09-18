@@ -62,6 +62,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       appBar: AppBar(
         title: GestureDetector(onLongPress: () => context.push('/admin'), child: const Text('SnapMon')),
         actions: [
+          IconButton(key: const Key('dex'), tooltip: '図鑑', icon: const Icon(Icons.menu_book), onPressed: () => context.push('/dex')),
+          IconButton(key: const Key('items'), tooltip: 'アイテム', icon: const Icon(Icons.backpack_outlined), onPressed: () => context.push('/items')),
           IconButton(key: const Key('friends'), tooltip: 'フレンド・対戦', icon: const Icon(Icons.sports_mma), onPressed: () => context.push('/friends')),
           IconButton(key: const Key('ranch'), tooltip: '牧場', icon: const Icon(Icons.grass), onPressed: () => context.push('/ranch')),
           IconButton(

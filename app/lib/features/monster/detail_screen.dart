@@ -23,6 +23,54 @@ class MonsterDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _appointMentor(BuildContext context, WidgetRef ref, Monster m) async {
+    final moves = ref.read(moveTableProvider).value ?? const {};
+    final chosen = await showDialog<String>(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: const Text('師匠の型にする技を選ぶ（変更不可）'),
+        children: [
+          for (final id in m.allMoves)
+            SimpleDialogOption(onPressed: () => Navigator.of(context).pop(id), child: Text((moves[id]?['name'] as String?) ?? id)),
+        ],
+      ),
+    );
+    if (chosen == null || !context.mounted) return;
+    await _run(context, () => ref.read(monsterApiProvider).appointMentor(m.id, chosen), '${m.displayName} は師匠になった');
+  }
+
+  Future<void> _reserveDisciple(BuildContext context, WidgetRef ref, Monster m, bool hasCapsule) async {
+    var useCapsule = false;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('弟子を予約'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('次に生まれる 1 体が弟子になり、素質の一部と師匠の型を受け継ぎます。'),
+              if (hasCapsule)
+                CheckboxListTile(
+                  value: useCapsule,
+                  onChanged: (v) => setState(() => useCapsule = v ?? false),
+                  title: const Text('絆カプセルを使う（継承率アップ）'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('やめる')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('予約する')),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    await _run(context, () => ref.read(monsterApiProvider).reserveDisciple(m.id, useCapsule), '次に生まれる子が弟子になります');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -32,6 +80,7 @@ class MonsterDetailScreen extends ConsumerWidget {
     final murmurs = ref.watch(murmurTextsProvider).value ?? const {};
     final cfg = ref.watch(gameConfigProvider).value;
     final personalities = cfg?.personalities;
+    final moveTable = ref.watch(moveTableProvider).value ?? const <String, Map<String, dynamic>>{};
     final api = ref.read(monsterApiProvider);
 
     return Scaffold(
@@ -112,8 +161,40 @@ class MonsterDetailScreen extends ConsumerWidget {
                       icon: const Icon(Icons.restaurant),
                       label: Text('${itemLabel(f.key)} ×${f.value}'),
                     ),
+                  if (m.canBecomeMentor)
+                    OutlinedButton.icon(
+                      key: const Key('appoint-mentor'),
+                      onPressed: () => _appointMentor(context, ref, m),
+                      icon: const Icon(Icons.school),
+                      label: const Text('師匠に任命'),
+                    ),
+                  if (m.isMentor && !m.mentorUsed && user?['pendingDisciple'] == null)
+                    OutlinedButton.icon(
+                      key: const Key('reserve-disciple'),
+                      onPressed: () => _reserveDisciple(context, ref, m, (inventory['bond_capsule'] ?? 0) > 0),
+                      icon: const Icon(Icons.child_care),
+                      label: const Text('弟子を予約'),
+                    ),
+                  if (m.isMentor && !m.mentorUsed && (user?['pendingDisciple'] as Map?)?['mentorId'] == m.id)
+                    OutlinedButton.icon(
+                      onPressed: () => _run(context, () => api.cancelDisciple(), '弟子の予約を取り消した'),
+                      icon: const Icon(Icons.cancel_outlined),
+                      label: const Text('弟子の予約中（取り消す）'),
+                    ),
+                  if (m.isMentor || m.mentorId != null)
+                    OutlinedButton.icon(
+                      key: const Key('lineage'),
+                      onPressed: () => context.push('/lineage/${m.id}'),
+                      icon: const Icon(Icons.account_tree),
+                      label: const Text('家系図'),
+                    ),
                 ],
               ),
+              if (m.isMentor)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(m.mentorUsed ? '師匠（弟子あり）' : '師匠（弟子はまだ）', style: theme.textTheme.bodySmall),
+                ),
               const SizedBox(height: 16),
               Text('ステータス（合計 ${m.total}）', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
@@ -143,9 +224,13 @@ class MonsterDetailScreen extends ConsumerWidget {
               Text('Lv1〜Lv${m.level} の実測。予測線は出ません。', style: theme.textTheme.bodySmall),
               const SizedBox(height: 16),
               Text('わざ', style: theme.textTheme.titleMedium),
-              for (final id in m.moves) ListTile(dense: true, leading: const Icon(Icons.flash_on), title: Text(id)),
+              for (final id in m.moves) ListTile(dense: true, leading: const Icon(Icons.flash_on), title: Text((moveTable[id]?['name'] as String?) ?? id)),
               if (m.inheritedMoveId != null)
-                ListTile(dense: true, leading: const Icon(Icons.auto_awesome), title: Text('師匠の型: ${m.inheritedMoveId}')),
+                ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.auto_awesome),
+                  title: Text('師匠の型: ${(moveTable[m.inheritedMoveId]?['name'] as String?) ?? m.inheritedMoveId}${m.inheritedGeneration >= 3 ? '・伝承（威力 +10%）' : ''}'),
+                ),
             ],
           );
         },

@@ -79,7 +79,12 @@ class Monster {
     required this.personalityRevealed,
     required this.trainingCount,
     required this.inheritedMoveId,
+    required this.inheritedGeneration,
     required this.mentorId,
+    required this.discipleId,
+    required this.isMentor,
+    required this.mentorUsed,
+    required this.mentorMoveId,
     required this.lastMurmurTextId,
     required this.createdAt,
   });
@@ -106,7 +111,12 @@ class Monster {
   final bool personalityRevealed;
   final int trainingCount;
   final String? inheritedMoveId;
+  final int inheritedGeneration;
   final String? mentorId;
+  final String? discipleId;
+  final bool isMentor;
+  final bool mentorUsed;
+  final String? mentorMoveId;
   final String? lastMurmurTextId;
   final DateTime? createdAt;
 
@@ -117,6 +127,10 @@ class Monster {
   String get elementLabel => elementJa[element] ?? element;
   int get total => stats.values.fold(0, (a, b) => a + b);
   bool get isStored => status == 'stored';
+  /// 師匠になれる（Lv50、未任命）
+  bool get canBecomeMentor => level >= 50 && !isMentor;
+  /// 覚えている技（4 枠 + 師匠の型）
+  List<String> get allMoves => [...moves, if (inheritedMoveId != null) inheritedMoveId!];
   bool get hasIndividualArt => artStatus == 'ready' && artImagePath != null;
   /// 写真参照の絵を待っている（卵表示）
   bool get isHatching => artStatus == 'awaiting_source' || artStatus == 'pending' || artStatus == 'generating';
@@ -158,7 +172,12 @@ class Monster {
       personalityRevealed: (d['personalityRevealed'] as bool?) ?? false,
       trainingCount: ((d['trainingCount'] as num?) ?? 0).toInt(),
       inheritedMoveId: (d['inheritedMove'] as Map?)?['moveId'] as String?,
+      inheritedGeneration: (((d['inheritedMove'] as Map?)?['generation'] as num?) ?? 0).toInt(),
       mentorId: d['mentorId'] as String?,
+      discipleId: d['discipleId'] as String?,
+      isMentor: (d['isMentor'] as bool?) ?? false,
+      mentorUsed: (d['mentorUsed'] as bool?) ?? false,
+      mentorMoveId: d['mentorMoveId'] as String?,
       lastMurmurTextId: d['lastMurmurTextId'] as String?,
       createdAt: (d['createdAt'] as Timestamp?)?.toDate(),
     );

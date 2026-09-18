@@ -65,6 +65,12 @@ final murmurTextsProvider = FutureProvider<Map<String, String>>((ref) async {
   return out;
 });
 
+/// 技テーブル（id → 表示名など）。assets/config/moves.json
+final moveTableProvider = FutureProvider<Map<String, Map<String, dynamic>>>((ref) async {
+  final j = jsonDecode(await rootBundle.loadString('assets/config/moves.json')) as Map<String, dynamic>;
+  return {for (final m in (j['moves'] as List)) (m as Map)['id'] as String: Map<String, dynamic>.from(m)};
+});
+
 /// 今日（JST）の撮影枠の残り
 int remainingSnaps(Map<String, dynamic>? user, int snapsPerDay) {
   return snapsPerDay - todayValue(user, 'snapsUsed').clamp(0, snapsPerDay);
@@ -108,6 +114,10 @@ abstract class MonsterApi {
   Future<void> rest(String monsterId);
   Future<String> retryArtBucket(String bucketId);
   Future<String> retryMonsterArt(String monsterId);
+  Future<void> setStorage(String monsterId, bool stored);
+  Future<void> appointMentor(String monsterId, String mentorMoveId);
+  Future<void> reserveDisciple(String mentorId, bool useCapsule);
+  Future<void> cancelDisciple();
 }
 
 class FirebaseMonsterApi implements MonsterApi {
@@ -152,6 +162,18 @@ class FirebaseMonsterApi implements MonsterApi {
   Future<void> rest(String monsterId) async {
     await _call('rest', {'monsterId': monsterId});
   }
+
+  @override
+  Future<void> setStorage(String monsterId, bool stored) => _call('setStorage', {'monsterId': monsterId, 'stored': stored});
+
+  @override
+  Future<void> appointMentor(String monsterId, String mentorMoveId) => _call('appointMentor', {'monsterId': monsterId, 'mentorMoveId': mentorMoveId});
+
+  @override
+  Future<void> reserveDisciple(String mentorId, bool useCapsule) => _call('reserveDisciple', {'mentorId': mentorId, 'useCapsule': useCapsule});
+
+  @override
+  Future<void> cancelDisciple() => _call('cancelDisciple', {});
 
   @override
   Future<String> retryMonsterArt(String monsterId) async {

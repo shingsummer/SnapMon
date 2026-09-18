@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/firebase_env.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'features/tutorial/tutorial_screen.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -20,7 +21,8 @@ Future<void> main() async {
   );
   // `--dart-define=USE_EMULATOR=true` のときだけローカルエミュレータへ
   configureEmulatorsIfNeeded();
-  runApp(const ProviderScope(child: SnapMonApp()));
+  final tutorialDone = await TutorialScreen.isDone();
+  runApp(ProviderScope(overrides: [tutorialDoneProvider.overrideWith((ref) => tutorialDone)], child: const SnapMonApp()));
 }
 
 class SnapMonApp extends ConsumerWidget {

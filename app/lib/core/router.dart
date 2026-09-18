@@ -8,6 +8,10 @@ import '../features/battle/battle_screen.dart';
 import '../features/battle/friends_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/camera/camera_screen.dart';
+import '../features/dex/dex_screen.dart';
+import '../features/items/items_screen.dart';
+import '../features/mentor/lineage_screen.dart';
+import '../features/tutorial/tutorial_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/monster/birth_screen.dart';
 import '../features/monster/detail_screen.dart';
@@ -27,10 +31,18 @@ class AppRoutes {
   static const admin = '/admin'; // 管理者のみ（サーバー側で判定）
   static const friends = '/friends'; // S16
   static const battle = '/battle/:id'; // S11
+  static const tutorial = '/tutorial'; // S02
+  static const dex = '/dex'; // S12
+  static const items = '/items'; // S13
+  static const lineage = '/lineage/:id'; // S14
 }
+
+/// チュートリアル完了フラグ（起動時に SharedPreferences から読む。テストでは override）
+final tutorialDoneProvider = StateProvider<bool>((ref) => true);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = ref.watch(authProvider.notifier);
+  final tutorialDone = ref.watch(tutorialDoneProvider);
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: authNotifier,
@@ -39,6 +51,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final goingToLogin = state.matchedLocation == AppRoutes.login;
       if (!signedIn && !goingToLogin) return AppRoutes.login;
       if (signedIn && goingToLogin) return AppRoutes.home;
+      if (signedIn && state.matchedLocation == AppRoutes.home && !tutorialDone) return AppRoutes.tutorial;
       return null;
     },
     routes: [
@@ -57,6 +70,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.train, builder: (_, state) => TrainingScreen(monsterId: state.pathParameters['id']!)),
       GoRoute(path: AppRoutes.admin, builder: (_, __) => const AdminScreen()),
       GoRoute(path: AppRoutes.friends, builder: (_, __) => const FriendsScreen()),
+      GoRoute(path: AppRoutes.tutorial, builder: (_, __) => const TutorialScreen()),
+      GoRoute(path: AppRoutes.dex, builder: (_, __) => const DexScreen()),
+      GoRoute(path: AppRoutes.items, builder: (_, __) => const ItemsScreen()),
+      GoRoute(path: AppRoutes.lineage, builder: (_, state) => LineageScreen(monsterId: state.pathParameters['id']!)),
       GoRoute(
         path: AppRoutes.battle,
         builder: (_, state) => BattleScreen(battleId: state.pathParameters['id']!, record: state.extra is BattleRecord ? state.extra as BattleRecord : null),

@@ -19,6 +19,7 @@ import { MonsterActionError, restCore, setPartnerCore, useItemCore } from "./mon
 import { RenameError, renameMonsterCore } from "./monster/rename";
 import { TrainError, trainCore } from "./monster/train";
 import { StepsError, submitStepsCore } from "./steps/submitSteps";
+import { MentorError, appointMentorCore, cancelDiscipleCore, reserveDiscipleCore, setStorageCore } from "./monster/mentor";
 import { BattleError, setBattlePartyCore, startBattleCore } from "./battle/startBattle";
 import { FriendError, addFriend, blockUser, ensureFriendCode, removeFriend, reportUser } from "./friends/friends";
 
@@ -458,6 +459,61 @@ export const reportUserFn = onCall({ enforceAppCheck: !IS_EMULATOR }, async (req
     return { ok: true, data: await reportUser(getFirestore(), uid, input.targetId, input.reason, input.detail ?? "") };
   } catch (e) {
     if (e instanceof FriendError) return toHttpsError(e, FRIEND_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+// ---------------------------------------------------------------- 師匠・継承・保管（§5.5, §7.1）
+const MENTOR_ERRORS: Record<string, FunctionsErrorCode> = {
+  not_found: "not-found",
+  forbidden: "permission-denied",
+  not_max_level: "failed-precondition",
+  already_mentor: "failed-precondition",
+  not_mentor: "failed-precondition",
+  mentor_used: "failed-precondition",
+  invalid_move: "invalid-argument",
+  no_capsule: "failed-precondition",
+  stored: "failed-precondition",
+  partner: "failed-precondition",
+  active_cap: "resource-exhausted",
+  reserved: "failed-precondition",
+};
+
+export const appointMentor = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(z.object({ monsterId: z.string().min(1).max(64), mentorMoveId: z.string().min(1).max(64) }), request.data);
+  try {
+    return { ok: true, data: await appointMentorCore(getFirestore(), uid, input.monsterId, input.mentorMoveId) };
+  } catch (e) {
+    if (e instanceof MentorError) return toHttpsError(e, MENTOR_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+export const reserveDisciple = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(z.object({ mentorId: z.string().min(1).max(64), useCapsule: z.boolean().optional() }), request.data);
+  try {
+    return { ok: true, data: await reserveDiscipleCore(getFirestore(), uid, input.mentorId, input.useCapsule ?? false) };
+  } catch (e) {
+    if (e instanceof MentorError) return toHttpsError(e, MENTOR_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+export const cancelDisciple = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  await cancelDiscipleCore(getFirestore(), uid);
+  return { ok: true, data: {} };
+});
+
+export const setStorage = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(z.object({ monsterId: z.string().min(1).max(64), stored: z.boolean() }), request.data);
+  try {
+    return { ok: true, data: await setStorageCore(getFirestore(), uid, input.monsterId, input.stored) };
+  } catch (e) {
+    if (e instanceof MentorError) return toHttpsError(e, MENTOR_ERRORS);
     return toHttpsError(e, {});
   }
 });
