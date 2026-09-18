@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// 企画書 v1.3 §10 セキュリティ規則。
+// 原則: 書き込みはすべて Cloud Functions（Admin SDK）経由。クライアントは自分のデータの読み取りのみ。
+// 隠し値（talent / growth / murmurRate / murmurWindowOffset / phash）は monsters_private にあり、クライアントは一切読めない。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // ユーザー本人のプロフィール・日次状態・所持品
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+
+      match /inventory/{itemId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    // モンスター（公開部分）: オーナーのみ読める。書き込みは Functions のみ
+    match /monsters/{monsterId} {
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // 隠し値: クライアントからは読み書きとも不可
+    match /monsters_private/{monsterId} {
+      allow read, write: if false;
+    }
+
+    // 共有アート: サインイン済みなら誰でも読める
+    match /art_buckets/{bucketId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // 歩数区間: 本人のみ読める。投入は submitSteps 経由
+    match /steps/{userId}/segments/{segmentId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
+    // バトルログ: 攻守どちらかの本人のみ
+    match /battles/{battleId} {
+      allow read: if signedIn()
+        && (resource.data.attackerId == request.auth.uid || resource.data.defenderId == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /friends/{userId}/list/{friendId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
+    match /reports/{reportId} {
+      allow read, write: if false;
+    }
+
+    // 上記以外はすべて拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
