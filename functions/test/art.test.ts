@@ -13,7 +13,7 @@ describe("art prompt", () => {
     expect(p).toContain("Family: aqua (");
     expect(p).toContain("Element: water (");
     expect(p).toContain("#1e88e5");
-    expect(p).toContain("plain white background");
+    expect(p).toContain("transparent background"); // アイドルアニメで生き物だけ動かすため背景は透明
     expect(p).toContain("non-human mascot");
     expect(p).not.toMatch(/Do not/); // 否定文は安全フィルタに弾かれるため使わない
   });

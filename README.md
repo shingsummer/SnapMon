@@ -82,6 +82,8 @@ cd app && bash tool/copy_config.sh && flutter run
 
 法務: 利用規約・プライバシーポリシーの原本は `docs/legal/*.md`。アプリは `app/tool/copy_config.sh` で `assets/legal/` にコピーして表示（S17、`/legal/terms` `/legal/privacy`）。公開ページは `python tools/gen_legal_html.py` → `hosting/public/` → `firebase deploy --only hosting`（URL は https://snap-mon-7a9bf.web.app/privacy.html など。ストア申請と Health Connect の用途申告に使う）。運営者名・連絡先・管轄裁判所は記入済み（2026-09-21）。年齢確認（生年、13 歳未満は拒否）はホーム表示前の `BirthYearGate`、退会はホーム下部の「アカウントを削除」（callable `deleteAccount`）。
 
+画像生成は背景透明（`background: "transparent"`、P6）。アイドルアニメ（`IdleMonsterArt`）は生き物だけを動かす前提。アプリを入れ直すと App Check のデバッグトークンが変わって本番 Firestore が PERMISSION_DENIED になるので、run ログに出る `firebase appcheck:debugtokens:create …` を `--force` 付きで実行して登録し直す。
+
 ステータスは 7 種（hp, atk, def, spa, sdf, spd, luk。P6 で特防 sdf を追加。旧個体の欠けは読み出し時に def で補う）。ファミリーごとの傾向は `shared-config/families.json`（初期値 bias と上昇倍率。ポケモンの種族値に相当、企画書 §4.1）。バトルのダメージ式は企画書 §6.2（v1.3 で改訂済み: 攻÷(攻＋守) × レベル係数 × 段階補正、会心は運÷3000 で 2 倍）。定数を触ったら `cd functions && npm run sim:battle` で検算し、§6.2 の表を更新する。技は Lv10/20 で自動習得（Lv30/40 の入れ替えは v1.1）。
 
 注意: 画像 API の安全フィルタは「Do not depict humans」のような否定文を弾くため、プロンプトは企画書 §16.3 の意図を肯定表現で書いている（`functions/src/art/prompt.ts`）。`moderation: "low"` も指定。

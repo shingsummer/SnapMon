@@ -45,7 +45,7 @@ export function buildArtPrompt(input: PromptInput): string {
     `Element: ${input.element} (${ELEMENT_DESCRIPTION[input.element]}).`,
     `Inspired by the shape and texture of: ${input.sourceLabel}.`,
     `Primary colors: #${input.colors[0]}, #${input.colors[1]}, #${input.colors[2]}.`,
-    "Style: clean cel-shaded illustration, soft outline, full body, centered, facing slightly left, plain white background, no text, no watermark.",
+    "Style: clean cel-shaded illustration, soft outline, full body, centered, facing slightly left, isolated on a fully transparent background with no backdrop, no ground, no shadow, no text, no watermark.",
     // 否定文（Do not depict ...）は画像 API の安全フィルタに弾かれやすいので肯定表現にする（§16.3 の意図は同じ）
     "The creature is an original, cute, non-human mascot design created for this game, an animal-like fantasy being with simple friendly eyes.",
   ].join("\n");

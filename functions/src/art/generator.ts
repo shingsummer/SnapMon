@@ -39,7 +39,8 @@ export class OpenAIImageGenerator implements ImageGenerator {
       method: "POST",
       headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
       // moderation: "low" は gpt-image 系の安全フィルタを緩める公式オプション（モンスター絵の誤検知対策）
-      body: JSON.stringify({ model: this.model, prompt, n: 1, size: opts.size, quality: opts.quality, output_format: "png", moderation: "low" }),
+      // background: "transparent" は PNG 出力時に背景を透明にする公式オプション（アイドルアニメで生き物だけを動かすため）
+      body: JSON.stringify({ model: this.model, prompt, n: 1, size: opts.size, quality: opts.quality, output_format: "png", background: "transparent", moderation: "low" }),
     });
     return this.parse(res, opts);
   }
@@ -52,6 +53,8 @@ export class OpenAIImageGenerator implements ImageGenerator {
     form.append("size", opts.size);
     form.append("quality", opts.quality);
     form.append("input_fidelity", opts.inputFidelity ?? "low");
+    form.append("output_format", "png");
+    form.append("background", "transparent");
     form.append("image", new Blob([new Uint8Array(image)], { type: "image/jpeg" }), "source.jpg");
     const res = await fetch(OPENAI_EDITS, { method: "POST", headers: { Authorization: `Bearer ${this.apiKey}` }, body: form });
     return this.parse(res, opts);
@@ -104,7 +107,7 @@ export class FakeImageGenerator implements ImageGenerator {
 
   private async blob(hex: string, opts: GenerateImageOptions): Promise<GeneratedImage> {
     const [w, h] = opts.size.split("x").map(Number);
-    const img = new Jimp({ width: w || 512, height: h || 512, color: 0xffffffff });
+    const img = new Jimp({ width: w || 512, height: h || 512, color: 0x00000000 }); // 本番と同じく背景は透明
     const color = parseInt(`${hex}ff`, 16);
     const cx = img.width / 2;
     const cy = img.height / 2;

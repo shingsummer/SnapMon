@@ -80,8 +80,8 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
           TextField(controller: _sampleCtrl, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'モンスター ID')),
           const SizedBox(height: 8),
           OutlinedButton(
-            onPressed: _busy ? null : () => _call('generateArtSamplesFn', {'monsterId': _sampleCtrl.text.trim(), 'qualities': ['low', 'medium']}),
-            child: const Text('低・中のサンプルを作る（約 8 円）'),
+            onPressed: _busy ? null : () => _call('generateArtSamplesFn', {'monsterId': _sampleCtrl.text.trim(), 'qualities': ['low']}), // 採用品質 low だけ（約 1.6 円/枚）
+            child: const Text('低品質のサンプルを作る（約 1.6 円、透明背景）'),
           ),
           const SizedBox(height: 8),
           const _SamplesList(),

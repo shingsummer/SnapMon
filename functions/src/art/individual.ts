@@ -62,7 +62,7 @@ export function buildIndividualPrompt(input: IndividualPromptInput): string {
     `The creature is ${familyLine}.`,
     `Element: ${input.element} (${ELEMENT_DESCRIPTION[input.element]}).`,
     `Primary colors: ${colors}.`,
-    "Style: clean cel-shaded illustration, soft outline, full body, centered, facing slightly left, plain white background, no text, no watermark.",
+    "Style: clean cel-shaded illustration, soft outline, full body, centered, facing slightly left, isolated on a fully transparent background with no backdrop, no ground, no shadow, no text, no watermark.",
     ...(vibe ? [`Expression and pose: ${vibe}.`] : []),
     "The creature is a cute, non-human mascot design created for this game, an animal-like fantasy being with simple expressive eyes.",
   ].join("\n");
