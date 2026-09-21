@@ -66,7 +66,8 @@ Future<FakeAuthRepository> _pumpApp(WidgetTester tester, {Map<String, dynamic>? 
       overrides: [
         gameConfigProvider.overrideWith((ref) async => _loadConfigFromRepo()),
         authRepositoryProvider.overrideWithValue(repo),
-        userDocProvider.overrideWith((ref) => Stream.value(userDoc)),
+        // birthYear が無いとホームの代わりに年齢確認が出るので、テストは申告済みにしておく
+        userDocProvider.overrideWith((ref) => Stream.value({'birthYear': 1990, ...?userDoc})),
         monstersProvider.overrideWith((ref) => Stream.value(const [])),
         inventoryProvider.overrideWith((ref) => Stream.value(const {})),
         murmurTextsProvider.overrideWith((ref) async => const {'p001': '散歩のあとは機嫌がいい'}),

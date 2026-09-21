@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'auth_provider.dart';
 
@@ -42,6 +43,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onChanged: auth.busy ? null : (v) => setState(() => _agreed = v ?? false),
                 title: const Text('利用規約とプライバシーポリシーに同意する'),
                 controlAffinity: ListTileControlAffinity.leading,
+              ),
+              Wrap(
+                alignment: WrapAlignment.center,
+                children: [
+                  TextButton(key: const Key('open-terms'), onPressed: () => context.push('/legal/terms'), child: const Text('利用規約を読む')),
+                  TextButton(key: const Key('open-privacy'), onPressed: () => context.push('/legal/privacy'), child: const Text('プライバシーポリシーを読む')),
+                ],
               ),
               const SizedBox(height: 16),
               if (_showApple) ...[

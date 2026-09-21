@@ -5,4 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p assets/config
 cp ../shared-config/*.json assets/config/
-echo "copied shared-config -> app/assets/config/"
+mkdir -p assets/legal
+cp "../docs/legal/利用規約.md" assets/legal/terms.md
+cp "../docs/legal/プライバシーポリシー.md" assets/legal/privacy.md
+echo "copied shared-config -> app/assets/config/, docs/legal -> app/assets/legal/"

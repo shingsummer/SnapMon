@@ -11,6 +11,7 @@ import '../features/camera/camera_screen.dart';
 import '../features/dex/dex_screen.dart';
 import '../features/items/items_screen.dart';
 import '../features/mentor/lineage_screen.dart';
+import '../features/legal/legal_screen.dart';
 import '../features/tutorial/tutorial_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/monster/birth_screen.dart';
@@ -35,6 +36,7 @@ class AppRoutes {
   static const dex = '/dex'; // S12
   static const items = '/items'; // S13
   static const lineage = '/lineage/:id'; // S14
+  static const legal = '/legal/:doc'; // S17 利用規約（terms）・プライバシーポリシー（privacy）
 }
 
 /// チュートリアル完了フラグ（起動時に SharedPreferences から読む。テストでは override）
@@ -49,7 +51,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final signedIn = ref.read(authProvider).state.signedIn;
       final tutorialDone = ref.read(tutorialDoneProvider); // watch にするとルーターが作り直されるので read
       final goingToLogin = state.matchedLocation == AppRoutes.login;
-      if (!signedIn && !goingToLogin) return AppRoutes.login;
+      final goingToLegal = state.matchedLocation.startsWith('/legal/'); // 規約はサインイン前でも読める
+      if (!signedIn && !goingToLogin && !goingToLegal) return AppRoutes.login;
       if (signedIn && goingToLogin) return AppRoutes.home;
       if (signedIn && state.matchedLocation == AppRoutes.home && !tutorialDone) return AppRoutes.tutorial;
       return null;
@@ -74,6 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.dex, builder: (_, __) => const DexScreen()),
       GoRoute(path: AppRoutes.items, builder: (_, __) => const ItemsScreen()),
       GoRoute(path: AppRoutes.lineage, builder: (_, state) => LineageScreen(monsterId: state.pathParameters['id']!)),
+      GoRoute(path: AppRoutes.legal, builder: (_, state) => LegalScreen(doc: state.pathParameters['doc']!)),
       GoRoute(
         path: AppRoutes.battle,
         builder: (_, state) => BattleScreen(battleId: state.pathParameters['id']!, record: state.extra is BattleRecord ? state.extra as BattleRecord : null),

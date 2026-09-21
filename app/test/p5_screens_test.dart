@@ -82,7 +82,7 @@ Monster _m(String id, {String family = 'aqua', String element = 'water', String?
 List<Override> _overrides({List<Monster> monsters = const [], Map<String, int> inventory = const {}, bool tutorialDone = true}) => [
       gameConfigProvider.overrideWith((ref) async => _cfg()),
       authRepositoryProvider.overrideWithValue(_Auth()),
-      userDocProvider.overrideWith((ref) => Stream.value(null)),
+      userDocProvider.overrideWith((ref) => Stream.value({'birthYear': 1990})),
       monstersProvider.overrideWith((ref) => Stream.value(monsters)),
       inventoryProvider.overrideWith((ref) => Stream.value(inventory)),
       murmurTextsProvider.overrideWith((ref) async => const {}),

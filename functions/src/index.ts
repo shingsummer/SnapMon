@@ -22,6 +22,8 @@ import { StepsError, submitStepsCore } from "./steps/submitSteps";
 import { MentorError, appointMentorCore, cancelDiscipleCore, reserveDiscipleCore, setStorageCore } from "./monster/mentor";
 import { BattleError, setBattlePartyCore, startBattleCore } from "./battle/startBattle";
 import { FriendError, addFriend, blockUser, ensureFriendCode, removeFriend, reportUser } from "./friends/friends";
+import { AccountError, deleteAccountCore, setBirthYearCore } from "./account/account";
+import { getAuth } from "firebase-admin/auth";
 
 initializeApp();
 setGlobalOptions({ region: "asia-northeast1", maxInstances: 10 });
@@ -514,6 +516,43 @@ export const setStorage = onCall({ enforceAppCheck: !IS_EMULATOR }, async (reque
     return { ok: true, data: await setStorageCore(getFirestore(), uid, input.monsterId, input.stored) };
   } catch (e) {
     if (e instanceof MentorError) return toHttpsError(e, MENTOR_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+// ---------------------------------------------------------------- アカウント（年齢確認・削除）
+const ACCOUNT_ERRORS: Record<string, FunctionsErrorCode> = { under_13: "failed-precondition", invalid_year: "invalid-argument" };
+
+/** 生年の自己申告（企画書 §14.3）。13 歳未満は failed-precondition（reason: under_13） */
+export const setBirthYear = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(z.object({ birthYear: z.number().int() }), request.data);
+  try {
+    return { ok: true, data: await setBirthYearCore(getFirestore(), uid, input.birthYear) };
+  } catch (e) {
+    if (e instanceof AccountError) return toHttpsError(e, ACCOUNT_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+/** アカウント削除（利用規約 第 12 条）。Firestore → Storage の出自写真 → Auth ユーザーの順に消す */
+export const deleteAccount = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  try {
+    const res = await deleteAccountCore(
+      {
+        db: getFirestore(),
+        deleteSourceImages: async (u) => {
+          await getStorage().bucket().deleteFiles({ prefix: `source/${u}/` });
+        },
+        deleteAuthUser: async (u) => {
+          await getAuth().deleteUser(u);
+        },
+      },
+      uid,
+    );
+    return { ok: true, data: res };
+  } catch (e) {
     return toHttpsError(e, {});
   }
 });

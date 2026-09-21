@@ -1,6 +1,7 @@
 # 生成物（shared-config のコピー）
 functions/shared-config/
 app/assets/config/
+app/assets/legal/
 
 # Node
 node_modules/

@@ -6,6 +6,7 @@ import '../../core/config.dart';
 import '../auth/auth_provider.dart';
 import '../monster/monster_art.dart';
 import '../monster/monster_repository.dart';
+import '../profile/birth_year_screen.dart';
 import '../steps/steps_sync.dart';
 
 /// S03 ホーム（企画書 §8.1）。撮影枠・歩数/VP・パートナー（つぶやき）。
@@ -36,11 +37,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     super.dispose();
   }
 
+  /// アカウント削除（利用規約 第 12 条）。確認 → サーバーで削除 → サインアウト
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('アカウントを削除しますか？'),
+        content: const Text('モンスター、出自の写真、歩数の記録、アイテム、フレンドがすべて消えます。この操作は取り消せません。'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('やめる')),
+          FilledButton(
+            key: const Key('delete-account-confirm'),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('削除する'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    try {
+      await ref.read(monsterApiProvider).deleteAccount();
+      await ref.read(authProvider).signOut();
+    } catch (e) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('削除に失敗しました: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider).state;
     final config = ref.watch(gameConfigProvider);
-    final user = ref.watch(userDocProvider).value;
+    final userAsync = ref.watch(userDocProvider);
+    final user = userAsync.value;
+    // 年齢確認（§14.3）: users.birthYear が無い間はホームの代わりに生年の申告を出す（ドキュメント未作成の新規ユーザーも）
+    if (userAsync.hasValue && user?['birthYear'] == null) return const BirthYearGate();
     final sync = ref.watch(stepsSyncProvider);
     final murmurs = ref.watch(murmurTextsProvider).value ?? const {};
     final snapsPerDay = (config.value?.constants['snapsPerDay'] as int?) ?? 3;
@@ -111,6 +142,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
             ),
           ),
           _InfoCard(title: 'ログイン中', body: auth.displayName ?? '-'),
+          Card(
+            child: Column(
+              children: [
+                ListTile(key: const Key('legal-terms'), dense: true, leading: const Icon(Icons.description_outlined), title: const Text('利用規約'), onTap: () => context.push('/legal/terms')),
+                ListTile(key: const Key('legal-privacy'), dense: true, leading: const Icon(Icons.privacy_tip_outlined), title: const Text('プライバシーポリシー'), onTap: () => context.push('/legal/privacy')),
+                ListTile(
+                  key: const Key('delete-account'),
+                  dense: true,
+                  leading: Icon(Icons.delete_forever_outlined, color: Theme.of(context).colorScheme.error),
+                  title: const Text('アカウントを削除'),
+                  onTap: () => _confirmDeleteAccount(context),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

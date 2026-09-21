@@ -118,6 +118,12 @@ abstract class MonsterApi {
   Future<void> appointMentor(String monsterId, String mentorMoveId);
   Future<void> reserveDisciple(String mentorId, bool useCapsule);
   Future<void> cancelDisciple();
+
+  /// 生年の自己申告（13 歳未満は reason 'under_13' の例外）
+  Future<void> setBirthYear(int birthYear);
+
+  /// アカウント削除。成功後は呼び出し側でサインアウトする
+  Future<void> deleteAccount();
 }
 
 class FirebaseMonsterApi implements MonsterApi {
@@ -174,6 +180,10 @@ class FirebaseMonsterApi implements MonsterApi {
 
   @override
   Future<void> cancelDisciple() => _call('cancelDisciple', {});
+  @override
+  Future<void> setBirthYear(int birthYear) => _call('setBirthYear', {'birthYear': birthYear});
+  @override
+  Future<void> deleteAccount() => _call('deleteAccount', {});
 
   @override
   Future<String> retryMonsterArt(String monsterId) async {

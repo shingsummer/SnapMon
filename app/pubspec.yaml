@@ -41,4 +41,5 @@ flutter:
   # shared-config は tool/copy_config.sh で assets/config/ にコピーする（生成物、git 管理外）
   assets:
     - assets/config/
+    - assets/legal/
     - assets/art/placeholder/
