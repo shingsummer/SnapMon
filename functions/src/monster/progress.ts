@@ -1,5 +1,7 @@
 // 経験値付与とレベルアップの適用（企画書 §4.4, §4.7）。純ロジック。
 // レベルアップの乱数は「個体の seed + レベル」から決定論的に作る（再現可能、改ざん検証可能）。
+import type { Element, Family } from "../generate/classify";
+import { learnMovesOnLevelUp } from "../generate/loadout";
 import { STATS, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { applyExp, levelUp } from "../shared/growth";
 import { XorShift128, seedFromParts } from "../shared/rng";
@@ -36,6 +38,17 @@ export function grantExp(m: ProgressInput, gained: number): ProgressResult {
     history.push({ level: L + 1, stats: roundStats(stats) });
   }
   return { level: r.level, exp: r.exp, stats, statHistory: history, levelUps: r.levelUps };
+}
+
+/**
+ * レベルアップで覚えた技の更新差分（§6.3）。monsters の公開ドキュメントと grantExp の前後レベルから、
+ * 技が増えたときだけ `{ moves }` を返す（増えなければ空オブジェクト。tx.update にスプレッドして使う）。
+ */
+export function levelUpMovesUpdate(pub: Record<string, unknown>, seed: string, fromLevel: number, toLevel: number): { moves?: string[] } {
+  if (toLevel <= fromLevel) return {};
+  const before = (pub.moves as string[] | undefined) ?? [];
+  const after = learnMovesOnLevelUp(seed, pub.family as Family, (pub.subFamily as Family | null | undefined) ?? null, pub.element as Element, before, fromLevel, toLevel);
+  return after.length === before.length ? {} : { moves: after };
 }
 
 /** 表示用に丸める（保存は小数のまま。グラフは丸めた値） */

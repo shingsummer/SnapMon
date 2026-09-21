@@ -7,7 +7,7 @@ import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
 import { loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { jstDateKey } from "../shared/jst";
-import { grantExp } from "../monster/progress";
+import { grantExp, levelUpMovesUpdate } from "../monster/progress";
 import { rollMurmur } from "../murmur/murmur";
 import { areFriends, isBlockedEitherWay } from "../friends/friends";
 import { combatantFromDoc, resolveBattle, type BattleResult, type Combatant } from "./engine";
@@ -187,6 +187,7 @@ export async function startBattleCore(
         level: res.level,
         stats: res.stats,
         statHistory: res.statHistory,
+        ...levelUpMovesUpdate(p, pr.seed as string, p.level as number, res.level),
         ...(m ? { lastMurmurTextId: m } : {}),
         updatedAt: FieldValue.serverTimestamp(),
       });

@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "serve": "npm run build && firebase emulators:start --only functions,firestore,auth,storage",
     "deploy": "firebase deploy --only functions",
-    "test:integration": "npm run copy-config && firebase emulators:exec --only firestore --project snap-mon-7a9bf \"vitest run -c vitest.integration.config.ts\""
+    "test:integration": "npm run copy-config && firebase emulators:exec --only firestore --project snap-mon-7a9bf \"vitest run -c vitest.integration.config.ts\"",
+    "sim:battle": "npm run copy-config && vitest run -c vitest.sim.config.ts"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",

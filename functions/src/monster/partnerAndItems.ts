@@ -3,7 +3,7 @@ import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
 import { loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { jstDateKey } from "../shared/jst";
-import { grantExp } from "./progress";
+import { grantExp, levelUpMovesUpdate } from "./progress";
 
 export class MonsterActionError extends Error {
   constructor(
@@ -93,7 +93,7 @@ export async function useItemCore(db: Firestore, uid: string, monsterId: string,
       exp = res.exp;
       level = res.level;
       levelUps = res.levelUps;
-      Object.assign(update, { exp, level, stats: res.stats, statHistory: res.statHistory });
+      Object.assign(update, { exp, level, stats: res.stats, statHistory: res.statHistory }, levelUpMovesUpdate(p, pr.seed as string, p.level as number, level));
     } else if (itemType === "fatigue_cure") {
       const user = userSnap.exists ? (userSnap.data() as Record<string, unknown>) : {};
       const daily = (user.dailyState as Record<string, unknown> | undefined) ?? {};

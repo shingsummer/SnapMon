@@ -104,10 +104,11 @@ function newFighter(side: Side, index: number, c: Combatant): Fighter {
   };
 }
 
+/** 段階補正の倍率。+n は 1+k·n、−n は 1/(1+k·n)（0 や負にならない。最大 ±battleMaxStage） */
 function stageMul(stage: number): number {
   const { constants: C } = loadConfig();
   const k = C.battleStageMultiplier as number;
-  return 1 + k * stage;
+  return stage >= 0 ? 1 + k * stage : 1 / (1 + k * -stage);
 }
 
 function effStat(f: Fighter, s: Stat): number {
@@ -137,12 +138,17 @@ function baseDamage(user: Fighter, target: Fighter, m: MoveDef): number {
   const { constants: C } = loadConfig();
   const scale = C.battleDamageScale as number;
   const lf = C.battleLevelFactorBase as number;
-  const atk = m.category === "physical" ? effStat(user, "atk") : effStat(user, "spa");
-  const def = m.category === "physical" ? effStat(target, "def") : effStat(target, "spa");
+  // 段階補正（バフ・デバフ）は比率の中に入れず最終ダメージに掛ける。
+  // 比率形だと攻撃 1.5 倍がダメージ +20% にしかならず、1 ターン使ってバフする価値が無くなるため（sim で確認）。
+  const atk = m.category === "physical" ? user.c.stats.atk : user.c.stats.spa;
+  const def = m.category === "physical" ? target.c.stats.def : target.c.stats.spa;
+  const atkStage = m.category === "physical" ? user.stages.atk : user.stages.spa;
+  const defStage = m.category === "physical" ? target.stages.def : target.stages.spa;
   const ratio = atk / Math.max(1, atk + def);
+  const exp = (C.battleRatioExponent as number | undefined) ?? 1;
   const levelFactor = (lf + user.c.level) / (lf + 50);
   const bonus = user.c.moveBonus?.[m.id] ?? 1;
-  return m.power * ratio * scale * levelFactor * bonus;
+  return (m.power * Math.pow(ratio, exp) * scale * levelFactor * bonus * stageMul(atkStage)) / stageMul(defStage);
 }
 
 /** 期待ダメージ（AI 用、乱数なし） */
@@ -156,12 +162,23 @@ function chooseMove(user: Fighter, target: Fighter, turnInDuel: number, rng: Xor
   const defs = user.c.moves.map(moveById).filter((m): m is MoveDef => !!m);
   if (defs.length === 0) return moveById("neutral_tackle")!;
   const maxHp = Math.max(1, Math.round(user.c.stats.hp));
+  let bestAttack = 0;
+  let bestCategory: MoveDef["category"] | null = null;
+  for (const m of defs) {
+    const d = expectedDamage(user, target, m);
+    if (d > bestAttack) {
+      bestAttack = d;
+      bestCategory = m.category;
+    }
+  }
+  const buffScale = (loadConfig().constants.battleAiBuffScore as number | undefined) ?? 0.8;
   const scored = defs.map((m) => {
     let score = expectedDamage(user, target, m);
     const e = m.effect ?? {};
     if (m.category === "support") {
       if (typeof e.healRatio === "number" && user.hp < maxHp * 0.5 && turnInDuel - user.lastHealTurn > 1) score = (maxHp - user.hp) * 1.2;
-      else if (turnInDuel === 1 && (e.atkStages || e.spaStages || e.defStages)) score = 60;
+      // バフ: 体力に余裕がある初手だけ、主力技と同じ系統（物理→攻撃、特殊→特攻）の上昇技を、最大攻撃の期待ダメージ × battleAiBuffScore で評価
+      else if (turnInDuel === 1 && user.hp > maxHp * 0.6 && buffUseful(user, e, bestCategory)) score = bestAttack * buffScale;
       else score = 10;
     } else if (typeof e.healRatio === "number" && user.hp < maxHp * 0.5) {
       score += maxHp * (e.healRatio as number);
@@ -170,6 +187,14 @@ function chooseMove(user: Fighter, target: Fighter, turnInDuel: number, rng: Xor
   });
   scored.sort((a, b) => b.score - a.score);
   return scored[0].m;
+}
+
+function buffUseful(user: Fighter, e: Record<string, number | boolean>, bestCategory: MoveDef["category"] | null): boolean {
+  const { constants: C } = loadConfig();
+  const m = C.battleMaxStage as number;
+  const key: [string, StageKey] | null = bestCategory === "physical" ? ["atkStages", "atk"] : bestCategory === "special" ? ["spaStages", "spa"] : null;
+  if (!key) return false;
+  return typeof e[key[0]] === "number" && (e[key[0]] as number) > 0 && user.stages[key[1]] < m;
 }
 
 export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combatant[]): BattleResult {
@@ -250,6 +275,7 @@ export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combata
       snap("faint", `${b.c.name} は倒れた`, { side: "B" }, turn);
       ib++;
     }
+    if (a.hp > 0 && b.hp > 0) throw new Error("battle engine: duel ended with both fighters alive"); // 無限ループ防止（HP が NaN 等）
   }
 
   const remainingA = A.filter((f) => f.hp > 0).length;
@@ -286,7 +312,7 @@ export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combata
     const crit = rng.nextDouble() < critChance;
     const r = rng.randRange(rlo, rhi);
     let dmg = Math.floor(baseDamage(user, target, m) * typeMod * (crit ? critMul : 1) * r);
-    dmg = Math.max(1, dmg);
+    dmg = Number.isFinite(dmg) ? Math.max(1, dmg) : 1;
     target.hp = Math.max(0, target.hp - dmg);
     const eff = typeMod > 1 ? "効果はばつぐんだ！ " : typeMod < 1 ? "効果はいまひとつ… " : "";
     snap("hit", `${eff}${crit ? "急所に当たった！ " : ""}${target.c.name} に ${dmg} のダメージ`, { side: user.side, damage: dmg, crit, typeMod, moveId: m.id }, turn);

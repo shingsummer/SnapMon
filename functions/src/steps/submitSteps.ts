@@ -4,7 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { jstDateKey } from "../shared/jst";
 import { rollMurmur } from "../murmur/murmur";
-import { grantExp } from "../monster/progress";
+import { grantExp, levelUpMovesUpdate } from "../monster/progress";
 import { convertSteps, hasContinuousWalk, validateSegments, type StepSegment, type ValidatedSegment } from "./validate";
 
 export class StepsError extends Error {
@@ -111,6 +111,7 @@ export async function submitStepsCore(deps: SubmitStepsDeps, uid: string, segmen
             level: res.level,
             stats: res.stats,
             statHistory: res.statHistory,
+            ...levelUpMovesUpdate(p, pr.seed as string, p.level as number, res.level),
             ...(murmurTextId ? { lastMurmurTextId: murmurTextId } : {}),
             updatedAt: FieldValue.serverTimestamp(),
           });

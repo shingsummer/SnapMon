@@ -6,7 +6,7 @@ import { statCap, train as applyTraining } from "../shared/growth";
 import { jstDateKey } from "../shared/jst";
 import { XorShift128, seedFromParts } from "../shared/rng";
 import { rollMurmur } from "../murmur/murmur";
-import { grantExp } from "./progress";
+import { grantExp, levelUpMovesUpdate } from "./progress";
 
 export class TrainError extends Error {
   constructor(
@@ -128,6 +128,7 @@ export async function trainCore(deps: TrainDeps, uid: string, monsterId: string,
       statHistory: res.statHistory,
       exp: res.exp,
       level: res.level,
+      ...levelUpMovesUpdate(p, pr.seed as string, p.level as number, res.level),
       fatigue: newFatigue,
       trainingCount: newCount,
       trainingBonus: newBonus,
