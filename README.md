@@ -105,3 +105,5 @@ firebase deploy --only storage --project snap-mon-7a9bf   # Storage を「始め
 ```
 
 デプロイ直後は Cloud Run の呼び出し権限の反映に 1〜2 分かかり、その間は callable が UNAUTHENTICATED を返す。
+
+`User code failed to load. Cannot determine backend specification. Timeout after 10000` で失敗したときは、コードの読み込み自体は 0.4 秒程度なので CLI 側の検出タイムアウト（既定 10 秒）が原因。`FUNCTIONS_DISCOVERY_TIMEOUT=60000` を付けて再実行する（PowerShell なら `$env:FUNCTIONS_DISCOVERY_TIMEOUT=60000` を先に実行）。
