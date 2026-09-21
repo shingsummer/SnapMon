@@ -80,7 +80,7 @@ cd app && bash tool/copy_config.sh && flutter run
 
 企画書 §13。P0 完了（2026-09-18）。P1 はエミュレータで本番 Vision API による誕生まで確認済み（実機確認のみ残り）。P2 育成はエミュレータ＋疑似歩数で確認済み（Health Connect の実歩数は実機待ち）。P3 アート: **写真参照の個体生成（品質 low、性格で表情が変わる）** を本番で確認済み。共有バケットは失敗時の保険。P4 バトル: 模擬戦をエミュレータで通し確認済み、本番デプロイ済み（フレンド戦は 2 アカウント目での確認が残り）。P5: 図鑑・アイテム・師匠任命/弟子予約/家系図・保管牧場・チュートリアルをエミュレータで通し確認済み、本番デプロイ済み。現在: **P6 β準備**（バランス調整、課金・広告、規約/プライバシーポリシー、Health Connect 用途申告、実機テスト）。
 
-法務: 利用規約・プライバシーポリシーの原本は `docs/legal/*.md`。アプリは `app/tool/copy_config.sh` で `assets/legal/` にコピーして表示（S17、`/legal/terms` `/legal/privacy`）。公開ページは `python tools/gen_legal_html.py` → `hosting/public/` → `firebase deploy --only hosting`（URL は https://snap-mon-7a9bf.web.app/privacy.html など。ストア申請と Health Connect の用途申告に使う）。文中の【開発者名】【連絡先メールアドレス】【所在地の都道府県】は公開前に埋める。年齢確認（生年、13 歳未満は拒否）はホーム表示前の `BirthYearGate`、退会はホーム下部の「アカウントを削除」（callable `deleteAccount`）。
+法務: 利用規約・プライバシーポリシーの原本は `docs/legal/*.md`。アプリは `app/tool/copy_config.sh` で `assets/legal/` にコピーして表示（S17、`/legal/terms` `/legal/privacy`）。公開ページは `python tools/gen_legal_html.py` → `hosting/public/` → `firebase deploy --only hosting`（URL は https://snap-mon-7a9bf.web.app/privacy.html など。ストア申請と Health Connect の用途申告に使う）。運営者名・連絡先・管轄裁判所は記入済み（2026-09-21）。年齢確認（生年、13 歳未満は拒否）はホーム表示前の `BirthYearGate`、退会はホーム下部の「アカウントを削除」（callable `deleteAccount`）。
 
 ステータスは 7 種（hp, atk, def, spa, sdf, spd, luk。P6 で特防 sdf を追加。旧個体の欠けは読み出し時に def で補う）。ファミリーごとの傾向は `shared-config/families.json`（初期値 bias と上昇倍率。ポケモンの種族値に相当、企画書 §4.1）。バトルのダメージ式は企画書 §6.2（v1.3 で改訂済み: 攻÷(攻＋守) × レベル係数 × 段階補正、会心は運÷3000 で 2 倍）。定数を触ったら `cd functions && npm run sim:battle` で検算し、§6.2 の表を更新する。技は Lv10/20 で自動習得（Lv30/40 の入れ替えは v1.1）。
 
