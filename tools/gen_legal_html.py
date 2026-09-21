@@ -21,6 +21,7 @@ OUT = ROOT / "hosting" / "public"
 PAGES = [
     ("利用規約.md", "terms.html", "利用規約"),
     ("プライバシーポリシー.md", "privacy.html", "プライバシーポリシー"),
+    ("特定商取引法に基づく表記.md", "tokusho.html", "特定商取引法に基づく表記"),
 ]
 
 CSS = """

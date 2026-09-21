@@ -1,6 +1,11 @@
 {
   "_doc": "SnapMon 定数表。企画書 v1.3 §16.2 が正。ここを変えたら python tools/gen_fixtures.py を実行し、企画書 §4.5 / §4.7 / §16.4 の表を更新すること。",
-  "snapsPerDay": 3,
+  "snapsPerDay": 1,
+  "snapsMaxPerDay": 3,
+  "premiumExtraSnapsPerDay": 1,
+  "starterSnapTickets": 3,
+  "premiumDays": 30,
+  "artUpgradeQuality": "medium",
   "stepsPerVp": 100,
   "maxStepsPerDay": 12000,
   "maxVpBalance": 200,

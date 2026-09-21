@@ -188,6 +188,16 @@ class MonsterDetailScreen extends ConsumerWidget {
                       icon: const Icon(Icons.account_tree),
                       label: const Text('家系図'),
                     ),
+                  // 専用アート（§12）: 券があれば描き直し、なければショップへ
+                  if (!m.isHatching)
+                    OutlinedButton.icon(
+                      key: const Key('art-upgrade'),
+                      onPressed: (inventory['art_upgrade'] ?? 0) > 0
+                          ? () => _run(context, () => api.applyArtUpgrade(m.id), '専用アートを描いています（30〜60 秒）')
+                          : () => context.push('/shop'),
+                      icon: const Icon(Icons.auto_awesome),
+                      label: Text((inventory['art_upgrade'] ?? 0) > 0 ? '専用アートで描き直す（券 ${inventory['art_upgrade']}）' : '専用アート'),
+                    ),
                 ],
               ),
               if (m.isMentor)

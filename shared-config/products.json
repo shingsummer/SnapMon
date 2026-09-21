@@ -1,0 +1,37 @@
+{
+  "_doc": "課金商品（企画書 §12、P6 で確定: 広告なし、無料 1 枚/日、課金で 1 日最大 3 枚）。id はストアの商品 ID と同じにする。grant がサーバーで付与する中身。price は表示用の目安（実際の価格はストアの設定が正）。",
+  "products": [
+    {
+      "id": "snap_ticket_5",
+      "kind": "consumable",
+      "name": "撮影チケット 5 枚",
+      "description": "無料枠を使い切った日に、もう 1 枚撮れる券。1 日の合計は 3 枚まで。",
+      "priceJpy": 250,
+      "grant": { "item": "snap_ticket", "count": 5 }
+    },
+    {
+      "id": "snap_ticket_15",
+      "kind": "consumable",
+      "name": "撮影チケット 15 枚",
+      "description": "まとめ買い。1 枚あたり 40 円。",
+      "priceJpy": 600,
+      "grant": { "item": "snap_ticket", "count": 15 }
+    },
+    {
+      "id": "art_upgrade_1",
+      "kind": "consumable",
+      "name": "専用アート（1 体）",
+      "description": "その子の出自の写真から、より高い品質で絵を描き直す。何度でも使える券として持てる。",
+      "priceJpy": 240,
+      "grant": { "item": "art_upgrade", "count": 1 }
+    },
+    {
+      "id": "premium_monthly",
+      "kind": "subscription",
+      "name": "プレミアム（30 日）",
+      "description": "育成中の枠 100 体、毎日の撮影枠 +1 枚（合計 3 枚まで）、疲労回復薬を毎日 1 個。",
+      "priceJpy": 480,
+      "grant": { "premiumDays": 30 }
+    }
+  ]
+}

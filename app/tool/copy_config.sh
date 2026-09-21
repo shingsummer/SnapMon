@@ -8,4 +8,5 @@ cp ../shared-config/*.json assets/config/
 mkdir -p assets/legal
 cp "../docs/legal/利用規約.md" assets/legal/terms.md
 cp "../docs/legal/プライバシーポリシー.md" assets/legal/privacy.md
+cp "../docs/legal/特定商取引法に基づく表記.md" assets/legal/tokusho.md
 echo "copied shared-config -> app/assets/config/, docs/legal -> app/assets/legal/"

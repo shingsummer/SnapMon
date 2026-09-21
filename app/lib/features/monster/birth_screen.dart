@@ -133,7 +133,12 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
           ),
           if (r != null) ...[
             const SizedBox(height: 8),
-            Center(child: Text('今日の撮影枠 残り ${r.snapsPerDay - r.snapsUsed} / ${r.snapsPerDay}', style: theme.textTheme.bodySmall)),
+            Center(
+              child: Text(
+                r.ticketUsed ? '撮影チケットを 1 枚使いました（残り ${r.ticketsLeft} 枚）' : '今日の無料枠 残り ${(r.snapsPerDay - r.snapsUsed).clamp(0, r.snapsPerDay)} / ${r.snapsPerDay}',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
           ],
         ],
       ),

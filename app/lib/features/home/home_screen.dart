@@ -74,8 +74,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     if (userAsync.hasValue && user?['birthYear'] == null) return const BirthYearGate();
     final sync = ref.watch(stepsSyncProvider);
     final murmurs = ref.watch(murmurTextsProvider).value ?? const {};
-    final snapsPerDay = (config.value?.constants['snapsPerDay'] as int?) ?? 3;
-    final remaining = remainingSnaps(user, snapsPerDay);
+    final inventory = ref.watch(inventoryProvider).value ?? const <String, int>{};
+    final quota = snapQuota(user, inventory, config.value?.constants);
     final stepsToday = todayValue(user, 'stepsToday');
     final vp = vpBalanceOf(user);
     final partnerId = user?['partnerMonsterId'] as String?;
@@ -111,7 +111,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
           config.when(
             loading: () => const _InfoCard(title: '設定を読み込み中…', body: ''),
             error: (e, _) => _InfoCard(title: '設定の読み込みに失敗', body: '$e'),
-            data: (_) => _InfoCard(title: '今日の撮影枠', body: '残り $remaining / $snapsPerDay 枚'),
+            data: (_) => Card(
+              child: ListTile(
+                key: const Key('snap-quota'),
+                title: const Text('今日の撮影枠'),
+                subtitle: Text(_quotaText(quota)),
+                trailing: IconButton(key: const Key('shop'), tooltip: 'ショップ', icon: const Icon(Icons.storefront_outlined), onPressed: () => context.push('/shop')),
+              ),
+            ),
           ),
           Card(
             child: ListTile(
@@ -161,12 +168,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('shoot'),
-        onPressed: remaining > 0 ? () => context.push('/camera') : null,
+        onPressed: quota.canShoot ? () => context.push('/camera') : null,
         icon: const Icon(Icons.photo_camera),
-        label: Text(remaining > 0 ? '撮る' : '今日はおしまい'),
+        label: Text(quota.canShoot ? (quota.willUseTicket ? 'チケットで撮る' : '撮る') : '今日はおしまい'),
       ),
     );
   }
+}
+
+String _quotaText(SnapQuota q) {
+  final free = '無料 残り ${q.freeLeft} / ${q.freeAllowance} 枚';
+  if (q.dailyCapReached) return '$free ・ 今日は ${q.maxPerDay} 枚撮りました';
+  return q.tickets > 0 ? '$free ・ チケット ${q.tickets} 枚' : free;
 }
 
 class _InfoCard extends StatelessWidget {

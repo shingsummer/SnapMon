@@ -198,6 +198,9 @@ class GenerateResult {
     required this.items,
     required this.snapsUsed,
     required this.snapsPerDay,
+    this.snapsMaxPerDay = 3,
+    this.ticketUsed = false,
+    this.ticketsLeft = 0,
     required this.mentorId,
   });
 
@@ -209,7 +212,12 @@ class GenerateResult {
   final Map<String, int> base;
   final List<ItemGrant> items;
   final int snapsUsed;
+
+  /// 今日の無料枠（プレミアムなら +1）
   final int snapsPerDay;
+  final int snapsMaxPerDay;
+  final bool ticketUsed;
+  final int ticketsLeft;
   final String? mentorId;
 
   factory GenerateResult.fromJson(Map<dynamic, dynamic> j) => GenerateResult(
@@ -224,6 +232,9 @@ class GenerateResult {
             .toList(),
         snapsUsed: (j['snapsUsed'] as num).toInt(),
         snapsPerDay: (j['snapsPerDay'] as num).toInt(),
+        snapsMaxPerDay: ((j['snapsMaxPerDay'] as num?) ?? 3).toInt(),
+        ticketUsed: (j['ticketUsed'] as bool?) ?? false,
+        ticketsLeft: ((j['ticketsLeft'] as num?) ?? 0).toInt(),
         mentorId: j['mentorId'] as String?,
       );
 }
@@ -240,6 +251,8 @@ String itemLabel(String type) {
   if (type.startsWith('food_')) return '${familyJa[type.substring(5)] ?? type}のエサ';
   if (type == 'fatigue_cure') return '疲労回復薬';
   if (type == 'bond_capsule') return '絆カプセル';
+  if (type == 'snap_ticket') return '撮影チケット';
+  if (type == 'art_upgrade') return '専用アート券';
   return type;
 }
 

@@ -96,7 +96,8 @@ describe("generateMonsterCore", () => {
     for (let i = 1; i < (C.snapsPerDay as number); i++) {
       await generateMonsterCore(d, uid, await pngOf(colors[i]));
     }
-    await expect(generateMonsterCore(d, uid, await pngOf(0xaa00aaff))).rejects.toMatchObject({ code: "daily_limit" });
+    // 無料枠を使い切り、チケットも無い → no_ticket（チケットあり／1 日の合計上限は shop.test.ts）
+    await expect(generateMonsterCore(d, uid, await pngOf(0xaa00aaff))).rejects.toMatchObject({ code: "no_ticket" });
   });
 
   it("enforces the 1/min rate limit", async () => {

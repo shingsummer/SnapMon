@@ -3,6 +3,7 @@
 // - deleteAccount: 利用者のサーバー上のデータを消す。対戦ログは相手のデータでもあるので残す（表示名は含まれない）
 import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
+import { loadConfig } from "../shared/config";
 
 export class AccountError extends Error {
   constructor(
@@ -20,7 +21,18 @@ export async function setBirthYearCore(db: Firestore, uid: string, birthYear: nu
   const thisYear = now.getFullYear();
   if (!Number.isInteger(birthYear) || birthYear < thisYear - 120 || birthYear > thisYear) throw new AccountError("invalid_year", "生まれた年を正しく入力してください");
   if (thisYear - birthYear < MIN_AGE) throw new AccountError("under_13", "13 歳未満の方は SnapMon を利用できません");
-  await db.collection("users").doc(uid).set({ birthYear, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  // 年齢確認が通った最初の 1 回だけ、はじめの撮影チケットを配る（§12、P6: 初日から 3 対 3 のバトルまで体験できるように）
+  const { constants: C } = loadConfig();
+  const starter = (C.starterSnapTickets as number | undefined) ?? 0;
+  const userRef = db.collection("users").doc(uid);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(userRef);
+    const granted = snap.exists && snap.get("starterGranted") === true;
+    tx.set(userRef, { birthYear, ...(granted ? {} : { starterGranted: true }), updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    if (!granted && starter > 0) {
+      tx.set(userRef.collection("inventory").doc("snap_ticket"), { type: "snap_ticket", count: FieldValue.increment(starter) }, { merge: true });
+    }
+  });
   return { birthYear };
 }
 

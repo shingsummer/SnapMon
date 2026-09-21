@@ -12,7 +12,7 @@ class LegalScreen extends StatelessWidget {
   /// テスト用（assets を読まずに本文を渡す）
   final String? textOverride;
 
-  static const titles = {'terms': '利用規約', 'privacy': 'プライバシーポリシー'};
+  static const titles = {'terms': '利用規約', 'privacy': 'プライバシーポリシー', 'tokusho': '特定商取引法に基づく表記'};
 
   Future<String> _load() async {
     if (textOverride != null) return textOverride!;

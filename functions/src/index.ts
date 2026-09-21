@@ -24,6 +24,7 @@ import { BattleError, setBattlePartyCore, startBattleCore } from "./battle/start
 import { FriendError, addFriend, blockUser, ensureFriendCode, removeFriend, reportUser } from "./friends/friends";
 import { AccountError, deleteAccountCore, setBirthYearCore } from "./account/account";
 import { getAuth } from "firebase-admin/auth";
+import { ShopError, DevPurchaseVerifier, NotConfiguredVerifier, applyArtUpgradeCore, loadProducts, redeemPurchaseCore } from "./shop/shop";
 
 initializeApp();
 setGlobalOptions({ region: "asia-northeast1", maxInstances: 10 });
@@ -119,6 +120,7 @@ export const generateMonster = onCall({ enforceAppCheck: !IS_EMULATOR, memory: "
         face_detected: "failed-precondition",
         duplicate_photo: "already-exists",
         daily_limit: "resource-exhausted",
+        no_ticket: "failed-precondition",
         rate_limited: "resource-exhausted",
         vision_failed: "unavailable",
       });
@@ -553,6 +555,60 @@ export const deleteAccount = onCall({ enforceAppCheck: !IS_EMULATOR }, async (re
     );
     return { ok: true, data: res };
   } catch (e) {
+    return toHttpsError(e, {});
+  }
+});
+
+// ---------------------------------------------------------------- 課金（§12、P6）
+const SHOP_ERRORS: Record<string, FunctionsErrorCode> = {
+  unknown_product: "invalid-argument",
+  invalid_purchase: "invalid-argument",
+  store_not_configured: "failed-precondition",
+  no_item: "failed-precondition",
+  not_found: "not-found",
+  forbidden: "permission-denied",
+  no_source: "failed-precondition",
+  in_progress: "already-exists",
+};
+
+/** ストアのレシート検証。本番のストア連携（Google Play Developer API / App Store Server API）は未設定 → 準備中を返す */
+function purchaseVerifier() {
+  return IS_EMULATOR ? new DevPurchaseVerifier() : new NotConfiguredVerifier();
+}
+
+export const getProducts = onCall({ enforceAppCheck: !IS_EMULATOR }, (request) => {
+  requireUid(request);
+  return { ok: true, data: { products: loadProducts(), storeReady: IS_EMULATOR } };
+});
+
+const RedeemInput = z.object({ platform: z.enum(["android", "ios", "dev"]), productId: z.string().min(1).max(64), token: z.string().min(1).max(4096) });
+
+/** 購入の検証と付与（冪等）。クライアントはストアで購入したあと、レシート（token）を送る */
+export const redeemPurchase = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(RedeemInput, request.data);
+  if (input.platform === "dev" && !IS_EMULATOR) throw new HttpsError("invalid-argument", "dev purchases are emulator only");
+  try {
+    return { ok: true, data: await redeemPurchaseCore({ db: getFirestore(), verifier: purchaseVerifier() }, uid, input) };
+  } catch (e) {
+    if (e instanceof ShopError) return toHttpsError(e, SHOP_ERRORS);
+    return toHttpsError(e, {});
+  }
+});
+
+/** 専用アート券を使って、その個体を高品質で描き直す */
+export const applyArtUpgrade = onCall({ enforceAppCheck: !IS_EMULATOR, secrets: [OPENAI_API_KEY], memory: "512MiB", timeoutSeconds: 180 }, async (request) => {
+  const uid = requireUid(request);
+  const input = parse(MonsterIdInput, request.data);
+  try {
+    const res = await applyArtUpgradeCore(
+      { db: getFirestore(), regenerate: (id, quality) => processMonsterArt(individualDeps(), id, quality as ArtQuality) },
+      uid,
+      input.monsterId,
+    );
+    return { ok: true, data: res };
+  } catch (e) {
+    if (e instanceof ShopError) return toHttpsError(e, SHOP_ERRORS);
     return toHttpsError(e, {});
   }
 });

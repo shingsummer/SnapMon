@@ -32,6 +32,7 @@ async function born(uid: string, tag: string) {
       phash: async (b) => createHash("sha256").update(b).digest("hex").slice(0, 16),
       now: () => new Date((bornClock += 61_000)),
       nonce: () => tag,
+      skipLimits: true, // 無料枠は 1 日 1 枚（P6）。ここは育成側のテストなので枠は見ない
     },
     uid,
     img,

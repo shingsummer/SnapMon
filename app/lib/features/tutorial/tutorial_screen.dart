@@ -35,7 +35,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
   int _page = 0;
 
   static const _pages = [
-    (icon: Icons.photo_camera, title: '撮る', body: '身の回りの「物」を写真に撮ると、その物からモンスターが生まれます。\n1 日 3 枚まで。人の顔は撮れません。'),
+    (icon: Icons.photo_camera, title: '撮る', body: '身の回りの「物」を写真に撮ると、その物からモンスターが生まれます。\n無料で 1 日 1 枚。撮影チケットがあればもう少し撮れます（1 日 3 枚まで）。人の顔は撮れません。'),
     (icon: Icons.egg, title: '生まれる', body: '撮った写真から、その子だけの姿が描かれます（30〜60 秒）。\n素質や成長タイプは教えてもらえません。育ててみて、成長グラフで気づくものです。'),
     (icon: Icons.directions_walk, title: '歩く', body: 'モンスターは、あなたが歩いた分だけ強くなります。\n歩数が「活力ポイント」になり、トレーニングに使えます。乗り物での移動は数えません。\n次の画面で歩数の読み取りを許可してください。'),
   ];

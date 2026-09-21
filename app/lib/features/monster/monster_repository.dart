@@ -124,6 +124,75 @@ abstract class MonsterApi {
 
   /// アカウント削除。成功後は呼び出し側でサインアウトする
   Future<void> deleteAccount();
+
+  /// 商品一覧（shared-config/products.json と同じ）と、ストア連携の準備状況
+  Future<ProductCatalog> getProducts();
+
+  /// ストアで購入したレシート（token）を送って付与してもらう。同じ注文は 1 回しか付与されない
+  Future<RedeemResult> redeemPurchase({required String platform, required String productId, required String token});
+
+  /// 専用アート券を 1 枚使って描き直す
+  Future<void> applyArtUpgrade(String monsterId);
+}
+
+class ProductCatalog {
+  ProductCatalog({required this.products, required this.storeReady});
+  final List<Product> products;
+  final bool storeReady;
+}
+
+class Product {
+  Product({required this.id, required this.kind, required this.name, required this.description, required this.priceJpy});
+  final String id;
+  final String kind; // consumable | subscription
+  final String name;
+  final String description;
+  final int priceJpy;
+
+  factory Product.fromJson(Map<dynamic, dynamic> j) => Product(
+        id: j['id'] as String,
+        kind: j['kind'] as String,
+        name: j['name'] as String,
+        description: (j['description'] as String?) ?? '',
+        priceJpy: ((j['priceJpy'] as num?) ?? 0).toInt(),
+      );
+}
+
+class RedeemResult {
+  RedeemResult({required this.productId, required this.alreadyGranted, this.premiumUntil});
+  final String productId;
+  final bool alreadyGranted;
+  final int? premiumUntil;
+}
+
+/// 撮影枠の状態（サーバーの判定と同じ規則をクライアントで表示用に再現）
+class SnapQuota {
+  const SnapQuota({required this.usedToday, required this.freeAllowance, required this.tickets, required this.maxPerDay});
+  final int usedToday;
+  final int freeAllowance;
+  final int tickets;
+  final int maxPerDay;
+
+  int get freeLeft => (freeAllowance - usedToday).clamp(0, freeAllowance);
+  bool get willUseTicket => freeLeft == 0 && tickets > 0 && usedToday < maxPerDay;
+  bool get canShoot => usedToday < maxPerDay && (freeLeft > 0 || tickets > 0);
+  bool get dailyCapReached => usedToday >= maxPerDay;
+}
+
+bool isPremium(Map<String, dynamic>? user, DateTime now) {
+  final until = user?['premiumUntil'];
+  return until is num && until > now.millisecondsSinceEpoch;
+}
+
+SnapQuota snapQuota(Map<String, dynamic>? user, Map<String, int> inventory, Map<String, dynamic>? constants, {DateTime? now}) {
+  final n = now ?? DateTime.now();
+  final free = ((constants?['snapsPerDay'] as int?) ?? 1) + (isPremium(user, n) ? ((constants?['premiumExtraSnapsPerDay'] as int?) ?? 1) : 0);
+  return SnapQuota(
+    usedToday: todayValue(user, 'snapsUsed'),
+    freeAllowance: free,
+    tickets: inventory['snap_ticket'] ?? 0,
+    maxPerDay: (constants?['snapsMaxPerDay'] as int?) ?? 3,
+  );
 }
 
 class FirebaseMonsterApi implements MonsterApi {
@@ -184,6 +253,23 @@ class FirebaseMonsterApi implements MonsterApi {
   Future<void> setBirthYear(int birthYear) => _call('setBirthYear', {'birthYear': birthYear});
   @override
   Future<void> deleteAccount() => _call('deleteAccount', {});
+  @override
+  Future<ProductCatalog> getProducts() async {
+    final res = await _call('getProducts', {});
+    return ProductCatalog(
+      products: ((res['products'] as List?) ?? const []).map((e) => Product.fromJson(e as Map)).toList(),
+      storeReady: (res['storeReady'] as bool?) ?? false,
+    );
+  }
+
+  @override
+  Future<RedeemResult> redeemPurchase({required String platform, required String productId, required String token}) async {
+    final res = await _call('redeemPurchase', {'platform': platform, 'productId': productId, 'token': token});
+    return RedeemResult(productId: res['productId'] as String, alreadyGranted: (res['alreadyGranted'] as bool?) ?? false, premiumUntil: (res['premiumUntil'] as num?)?.toInt());
+  }
+
+  @override
+  Future<void> applyArtUpgrade(String monsterId) => _call('applyArtUpgrade', {'monsterId': monsterId});
 
   @override
   Future<String> retryMonsterArt(String monsterId) async {

@@ -10,6 +10,7 @@ import { XorShift128, seedFromParts } from "../shared/rng";
 import { artBucketId, artTint, classifyLabels, elementFromColor, type Element, type Family } from "./classify";
 import { pickInitialMoves, rollBirthItems, type ItemGrant } from "./loadout";
 import type { VisionClient } from "./vision";
+import { freeSnapAllowance } from "../shop/shop";
 
 export class GenerateError extends Error {
   constructor(
@@ -17,6 +18,7 @@ export class GenerateError extends Error {
       | "face_detected"
       | "duplicate_photo"
       | "daily_limit"
+      | "no_ticket"
       | "rate_limited"
       | "vision_failed",
     message: string,
@@ -53,7 +55,13 @@ export interface GenerateResult {
   artStatus: string; // awaiting_source | pending | fallback
   items: ItemGrant[];
   snapsUsed: number;
+  /** 今日の無料枠（プレミアムなら +1） */
   snapsPerDay: number;
+  /** 1 日の合計上限（無料枠＋チケット） */
+  snapsMaxPerDay: number;
+  /** この誕生で撮影チケットを 1 枚使ったか */
+  ticketUsed: boolean;
+  ticketsLeft: number;
   mentorId: string | null;
 }
 
@@ -109,7 +117,13 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
     const daily = (user.dailyState as Record<string, unknown> | undefined) ?? {};
     const sameDay = daily.date === today;
     const snapsUsed = sameDay ? ((daily.snapsUsed as number) ?? 0) : 0;
-    const snapsPerDay = C.snapsPerDay as number;
+    // 無料枠（プレミアムなら +1）。無料枠を超えたら撮影チケットを 1 枚消費。1 日の合計は snapsMaxPerDay まで（§7.1、P6 改訂）
+    const snapsPerDay = freeSnapAllowance(user, now());
+    const snapsMaxPerDay = C.snapsMaxPerDay as number;
+    const ticketRef = userRef.collection("inventory").doc("snap_ticket");
+    const ticketSnap = await tx.get(ticketRef);
+    const tickets = ticketSnap.exists ? ((ticketSnap.get("count") as number | undefined) ?? 0) : 0;
+    let useTicket = false;
 
     // ③ 使い回し（同一ユーザーの過去写真と 90% 以上一致）: 枠は消費しない
     const recent = (user.recentPhashes as string[] | undefined) ?? [];
@@ -124,7 +138,9 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
       throw new GenerateError("rate_limited", "少し待ってからもう一度撮ってください");
     }
     if (!deps.skipLimits && snapsUsed >= snapsPerDay) {
-      throw new GenerateError("daily_limit", "今日の撮影枚数を使い切りました。明日また撮ろう");
+      if (snapsUsed >= snapsMaxPerDay) throw new GenerateError("daily_limit", `今日はもう ${snapsMaxPerDay} 枚撮りました。明日また撮ろう`);
+      if (tickets <= 0) throw new GenerateError("no_ticket", "今日の無料枠は使いました。撮影チケットがあればもう 1 枚撮れます");
+      useTicket = true;
     }
 
     // ⑤ 師匠の継承予約（§5.5）
@@ -227,6 +243,7 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
       tx.set(userRef.collection("inventory").doc(it.type), { type: it.type, count: FieldValue.increment(it.count) }, { merge: true });
     }
     const nextRecent = [...recent, phash].slice(-RECENT_PHASH_KEEP);
+    if (useTicket) tx.set(ticketRef, { type: "snap_ticket", count: tickets - 1 }, { merge: true });
     const userUpdate: Record<string, unknown> = {
       dailyState: { ...(sameDay ? daily : {}), date: today, snapsUsed: snapsUsed + 1 },
       lastSnapAt: nowMs,
@@ -256,6 +273,9 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
       items,
       snapsUsed: snapsUsed + 1,
       snapsPerDay,
+      snapsMaxPerDay,
+      ticketUsed: useTicket,
+      ticketsLeft: useTicket ? tickets - 1 : tickets,
       mentorId,
     } satisfies GenerateResult;
   });

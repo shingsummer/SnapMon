@@ -100,7 +100,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('今日の撮影枠'), findsOneWidget);
-    expect(find.text('残り 3 / 3 枚'), findsOneWidget);
+    expect(find.text('無料 残り 1 / 1 枚'), findsOneWidget); // P6: 無料は 1 日 1 枚
     expect(find.text('開発者'), findsOneWidget);
     expect(find.text('撮る'), findsOneWidget);
 
@@ -142,7 +142,7 @@ void main() {
     await tester.tap(find.byKey(const Key('dev-sign-in')));
     await tester.pumpAndSettle();
 
-    expect(find.text('残り 0 / 3 枚'), findsOneWidget);
+    expect(find.textContaining('今日は 3 枚撮りました'), findsOneWidget); // P6: 1 日の合計上限
     expect(find.textContaining('活力ポイント'), findsOneWidget);
     expect(find.text('今日はおしまい'), findsOneWidget);
     expect(find.text('4321 歩 ・ 活力ポイント 77 VP'), findsOneWidget);

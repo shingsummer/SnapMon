@@ -13,6 +13,8 @@ class ItemsScreen extends ConsumerWidget {
     if (type.startsWith('food_')) return '対応ファミリーのモンスターにあげると経験値 +30';
     if (type == 'fatigue_cure') return '疲労を 0 にする（1 日 1 個まで）';
     if (type == 'bond_capsule') return '弟子を予約するときに使うと継承率アップ';
+    if (type == 'snap_ticket') return '無料枠を使い切った日に、撮るとき自動で 1 枚使われる（1 日 3 枚まで）';
+    if (type == 'art_upgrade') return 'モンスターの詳細画面から、その子を高品質で描き直す';
     return '';
   }
 
