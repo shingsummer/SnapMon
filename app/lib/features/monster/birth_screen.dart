@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'models.dart';
+import 'idle_monster_art.dart';
 import 'monster_art.dart';
 import 'monster_repository.dart';
 
@@ -76,7 +77,7 @@ class _BirthScreenState extends ConsumerState<BirthScreen> with SingleTickerProv
                 opacity: _reveal,
                 child: monster == null
                     ? FamilyArt(family: family, element: element, size: 220)
-                    : MonsterArt(monster: monster, size: 220, showPendingBadge: true),
+                    : IdleMonsterArt(monster: monster, size: 220, showPendingBadge: true),
               ),
             ),
           ),

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/config.dart';
 import '../auth/auth_provider.dart';
-import '../monster/monster_art.dart';
+import '../monster/idle_monster_art.dart';
 import '../monster/monster_repository.dart';
 import '../profile/birth_year_screen.dart';
 import '../steps/steps_sync.dart';
@@ -130,7 +130,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
           ),
           Card(
             child: ListTile(
-              leading: partner == null ? const Icon(Icons.egg_outlined, size: 40) : MonsterArt(monster: partner, size: 48),
+              leading: partner == null ? const Icon(Icons.egg_outlined, size: 40) : IdleMonsterArt(monster: partner, size: 48, reactToTap: false),
               title: const Text('パートナー'),
               subtitle: Text(
                 partner == null

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config.dart';
 import '../monster/models.dart';
-import '../monster/monster_art.dart';
+import '../monster/idle_monster_art.dart';
 import '../monster/monster_repository.dart';
 
 /// S08 トレーニング（企画書 §8.1, §5.3）。4 種選択、VP 残高、疲労ゲージ、結果演出、休息。
@@ -74,7 +74,7 @@ class _TrainingScreenState extends ConsumerState<TrainingScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Center(child: MonsterArt(monster: m, size: 120)),
+                Center(child: IdleMonsterArt(monster: m, size: 120)),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/config.dart';
 import '../../domain/growth.dart' as growth;
 import 'models.dart';
-import 'monster_art.dart';
+import 'idle_monster_art.dart';
 import 'monster_repository.dart';
 
 /// S07 モンスター詳細。ステータス、成長グラフ（実測のみ・予測線なし §4.2）、技、
@@ -101,7 +101,7 @@ class MonsterDetailScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Center(child: MonsterArt(monster: m, size: 180, showPendingBadge: true)),
+              Center(child: IdleMonsterArt(monster: m, size: 180, showPendingBadge: true)),
               const SizedBox(height: 8),
               Center(
                 child: Wrap(
