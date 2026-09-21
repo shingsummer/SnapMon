@@ -7,7 +7,7 @@ const mk = (id: string, element: Combatant["element"], stats: Partial<Combatant[
   family: "aqua",
   element,
   level: 50,
-  stats: { hp: 500, atk: 500, def: 500, spa: 500, spd: 500, luk: 50, ...stats },
+  stats: { hp: 500, atk: 500, def: 500, spa: 500, sdf: 500, spd: 500, luk: 50, ...stats },
   moves,
 });
 
@@ -90,7 +90,7 @@ describe("resolveBattle", () => {
       family: "aqua",
       element: "water",
       level: 12,
-      stats: { hp: 100, atk: 50, def: 50, spa: 50, spd: 50, luk: 10 },
+      stats: { hp: 100, atk: 50, def: 50, spa: 50, sdf: 50, spd: 50, luk: 10 },
       moves: ["water_shot", "neutral_tackle"],
       inheritedMove: { moveId: "beast_bite", generation: 3 },
     };

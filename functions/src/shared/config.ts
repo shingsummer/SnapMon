@@ -3,13 +3,36 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-export const STATS = ["hp", "atk", "def", "spa", "spd", "luk"] as const;
+// 7 種（P6 で特防 sdf を追加）。並びは乱数の呼び出し順でもある（shared-config/README.md）
+export const STATS = ["hp", "atk", "def", "spa", "sdf", "spd", "luk"] as const;
 export type Stat = (typeof STATS)[number];
 export type Stats = Record<Stat, number>;
 export type StatsInt = Record<Stat, number>;
 
 export type GrowthType = "early" | "avg" | "late" | "wave" | "superlate";
-export type TrainingType = "dash" | "labor" | "meditate" | "endure";
+export type TrainingType = "dash" | "labor" | "meditate" | "endure" | "ukemi";
+
+/** ファミリーごとのステータス傾向（families.json、ポケモンの種族値に相当） */
+export interface FamilyTraits {
+  baseBias: Stats;
+  gainMod: Stats;
+}
+
+/**
+ * Firestore などから読んだステータス／素質を 7 種そろえる。
+ * 特防 sdf を持たない旧データ（P6 より前に生まれた個体）は防御 def の値で補う。それ以外の欠けは 0。
+ */
+export function fillStats(src: Record<string, unknown> | undefined | null): Stats {
+  const out = {} as Stats;
+  const s = src ?? {};
+  for (const k of STATS) {
+    const v = s[k];
+    if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
+    else if (k === "sdf" && typeof s.def === "number") out[k] = s.def as number;
+    else out[k] = 0;
+  }
+  return out;
+}
 
 export interface Constants {
   levelCap: number;
@@ -57,14 +80,18 @@ function readJson<T>(name: string): T {
   return JSON.parse(fs.readFileSync(p, "utf-8")) as T;
 }
 
-let cache: { constants: Constants; personalities: Personality[]; curves: CurveTable } | null = null;
+let cache: { constants: Constants; personalities: Personality[]; curves: CurveTable; families: Record<string, FamilyTraits> } | null = null;
 
 export function loadConfig() {
   if (!cache) {
+    const raw = readJson<Record<string, FamilyTraits | string>>("families.json");
+    const families: Record<string, FamilyTraits> = {};
+    for (const [k, v] of Object.entries(raw)) if (!k.startsWith("_") && typeof v === "object") families[k] = v;
     cache = {
       constants: readJson<Constants>("constants.json"),
       personalities: readJson<Personality[]>("personalities.json"),
       curves: readJson<CurveTable>("growth_curves.json"),
+      families,
     };
   }
   return cache;

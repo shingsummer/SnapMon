@@ -3,7 +3,7 @@
 import { randomBytes } from "node:crypto";
 import type { Firestore, Transaction } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
-import { STATS, type StatsInt, loadConfig } from "../shared/config";
+import { fillStats, STATS, type StatsInt, loadConfig } from "../shared/config";
 import { rollIndividual } from "../shared/growth";
 import { jstDateKey } from "../shared/jst";
 import { XorShift128, seedFromParts } from "../shared/rng";
@@ -136,7 +136,7 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
       const mentorPriv = await tx.get(db.collection("monsters_private").doc(pending.mentorId));
       const mentorPub = await tx.get(db.collection("monsters").doc(pending.mentorId));
       if (mentorPriv.exists && mentorPub.exists && mentorPub.get("ownerId") === uid) {
-        mentorTalent = mentorPriv.get("talent") as StatsInt;
+        mentorTalent = fillStats(mentorPriv.get("talent") as Record<string, unknown>) as StatsInt;
         mentorId = pending.mentorId;
         const moveId = mentorPub.get("mentorMoveId") as string | undefined;
         if (moveId) {
@@ -150,7 +150,7 @@ export async function generateMonsterCore(deps: GenerateDeps, uid: string, image
     // ⑥ 乱数と個体
     const seed = seedFromParts(cls.sourceLabel, dominantHex, uid, today, nonce());
     const rng = new XorShift128(seed);
-    const ind = rollIndividual(rng, mentorTalent, pending?.useCapsule ?? false);
+    const ind = rollIndividual(rng, mentorTalent, pending?.useCapsule ?? false, cls.family);
     const moves = pickInitialMoves(rng, cls.family, cls.subFamily, element);
     const items = rollBirthItems(rng, cls.family);
     const bucket = artBucketId(cls.family, cls.subFamily, element, dominantHex);

@@ -1,7 +1,7 @@
 // submitSteps（企画書 §11, §5.1, §5.2, §4.7）: 区間検証 → VP 換算 → パートナー経験値 → dailyState 更新 → つぶやき。
 import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
-import { loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
+import { fillStats, loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { jstDateKey } from "../shared/jst";
 import { rollMurmur } from "../murmur/murmur";
 import { grantExp, levelUpMovesUpdate } from "../monster/progress";
@@ -93,11 +93,12 @@ export async function submitStepsCore(deps: SubmitStepsDeps, uid: string, segmen
             seed: pr.seed as string,
             level: p.level as number,
             exp: p.exp as number,
-            stats: p.stats as Stats,
-            talent: pr.talent as StatsInt,
+            stats: fillStats(p.stats as Record<string, unknown>),
+            talent: fillStats(pr.talent as Record<string, unknown>) as StatsInt,
             growth: pr.growth as GrowthType,
             personality: p.personality as number,
             statHistory: (p.statHistory as { level: number; stats: Stats }[]) ?? [],
+            family: p.family as string,
           },
           conv.partnerExp,
         );

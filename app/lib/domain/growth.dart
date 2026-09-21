@@ -4,7 +4,8 @@
 // 純 Dart（Flutter 非依存）。
 import 'rng.dart';
 
-const List<String> kStats = ['hp', 'atk', 'def', 'spa', 'spd', 'luk'];
+/// 7 種（P6 で特防 sdf を追加）。並びはサーバーと同じ（乱数の呼び出し順）。
+const List<String> kStats = ['hp', 'atk', 'def', 'spa', 'sdf', 'spd', 'luk'];
 
 /// shared-config の constants.json / personalities.json / growth_curves.json を束ねたもの。
 /// アプリ層が assets から読んで組み立てる。
@@ -13,11 +14,22 @@ class GameConfig {
     required this.constants,
     required this.personalities,
     required this.curves,
+    this.families = const {},
   });
 
   final Map<String, dynamic> constants;
   final List<dynamic> personalities;
   final Map<String, dynamic> curves;
+
+  /// families.json（ファミリーごとの baseBias / gainMod）。表示用の予測にだけ使うので省略可。
+  final Map<String, dynamic> families;
+
+  Map<String, num>? _familyMap(String? family, String key) {
+    if (family == null) return null;
+    final f = families[family] as Map?;
+    if (f == null) return null;
+    return (f[key] as Map?)?.cast<String, num>();
+  }
 
   int get levelCap => constants['levelCap'] as int;
   List<String> get growthTypeOrder => (constants['growthTypeOrder'] as List).cast<String>();
@@ -78,16 +90,19 @@ String rollGrowth(GameConfig cfg, int bst0, double u) {
   return order.last;
 }
 
+/// [family] を渡すと families.json の baseBias を初期値に足す（素質の計算には使わない。乱数は消費しない）。
 Individual rollIndividual(GameConfig cfg, XorShift128 rng,
-    {Map<String, int>? mentorTalent, bool useCapsule = false}) {
+    {Map<String, int>? mentorTalent, bool useCapsule = false, String? family}) {
   final baseR = cfg._range('baseStatRange');
   final talR = cfg._range('talentRange');
+  final bias = cfg._familyMap(family, 'baseBias');
   final base = <String, int>{};
   final talent = <String, int>{};
   for (final s in kStats) {
     final rb = rng.randInt(baseR[0].toInt(), baseR[1].toInt());
     final rt = rng.randInt(talR[0].toInt(), talR[1].toInt());
-    base[s] = rb;
+    final b = bias == null ? rb : rb + bias[s]!.toInt();
+    base[s] = b < 1 ? 1 : b;
     talent[s] = talentFromRaw(cfg, rb, rt);
   }
   if (mentorTalent != null) {
@@ -115,16 +130,18 @@ Individual rollIndividual(GameConfig cfg, XorShift128 rng,
 }
 
 /// level → level+1 のレベルアップ後ステータス。
+/// [family] を渡すと families.json の gainMod を上昇量に掛ける。
 Map<String, double> levelUp(GameConfig cfg, Map<String, double> stats, Map<String, int> talent,
-    String growth, int level, int personality, XorShift128 rng) {
+    String growth, int level, int personality, XorShift128 rng, {String? family}) {
   final mods = (cfg.personalities[personality]['levelGainMod'] as Map).cast<String, num>();
+  final fmods = cfg._familyMap(family, 'gainMod');
   final rr = cfg._range('levelGainRandRange');
   final gainBase = cfg._n('levelGainBase').toDouble();
   final gainPerTalent = cfg._n('levelGainPerTalent').toDouble();
   final out = <String, double>{};
   for (final s in kStats) {
     final r = rng.randRange(rr[0].toDouble(), rr[1].toDouble());
-    final gain = (gainBase + gainPerTalent * talent[s]!) * curve(cfg, growth, level) * mods[s]!.toDouble() * r;
+    final gain = (gainBase + gainPerTalent * talent[s]!) * curve(cfg, growth, level) * mods[s]!.toDouble() * (fmods?[s]?.toDouble() ?? 1.0) * r;
     final cap = statCap(cfg, talent[s]!).toDouble();
     final v = stats[s]! + gain;
     out[s] = v < cap ? v : cap;

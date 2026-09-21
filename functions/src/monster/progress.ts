@@ -15,6 +15,8 @@ export interface ProgressInput {
   growth: GrowthType;
   personality: number;
   statHistory: { level: number; stats: Stats }[];
+  /** ファミリー（families.json の gainMod を掛ける）。旧データで欠けていれば補正なし */
+  family?: string | null;
 }
 
 export interface ProgressResult {
@@ -34,7 +36,7 @@ export function grantExp(m: ProgressInput, gained: number): ProgressResult {
   let stats = { ...m.stats };
   const history = [...m.statHistory];
   for (let L = m.level; L < r.level; L++) {
-    stats = levelUp(stats, m.talent, m.growth, L, m.personality, levelUpRng(m.seed, L));
+    stats = levelUp(stats, m.talent, m.growth, L, m.personality, levelUpRng(m.seed, L), m.family ?? null);
     history.push({ level: L + 1, stats: roundStats(stats) });
   }
   return { level: r.level, exp: r.exp, stats, statHistory: history, levelUps: r.levelUps };

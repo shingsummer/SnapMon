@@ -27,6 +27,7 @@ void main() {
     constants: _readJson('constants.json'),
     personalities: _readJsonList('personalities.json'),
     curves: _readJson('growth_curves.json'),
+    families: _readJson('families.json'),
   );
   final fx = _readJson('fixtures/growth_golden.json');
 
@@ -75,7 +76,7 @@ void main() {
   test('rollIndividual with and without mentor', () {
     for (final c in fx['individuals'] as List) {
       final mentor = c['mentorTalent'] == null ? null : _intMap(c['mentorTalent'] as Map);
-      final ind = rollIndividual(cfg, XorShift128(c['seedHex']), mentorTalent: mentor, useCapsule: c['useCapsule'] as bool);
+      final ind = rollIndividual(cfg, XorShift128(c['seedHex']), mentorTalent: mentor, useCapsule: c['useCapsule'] as bool, family: c['family'] as String?);
       final e = c['expected'] as Map;
       expect(ind.base, _intMap(e['base'] as Map));
       expect(ind.talent, _intMap(e['talent'] as Map));
@@ -89,11 +90,11 @@ void main() {
   test('levelUp Lv1->50 full history', () {
     for (final c in fx['levelUps'] as List) {
       final rng = XorShift128(c['seedHex']);
-      final ind = rollIndividual(cfg, rng);
+      final ind = rollIndividual(cfg, rng, family: c['family'] as String?);
       var stats = ind.base.map((k, v) => MapEntry(k, v.toDouble()));
       final hist = c['statsByLevel'] as List;
       for (var L = 1; L < cfg.levelCap; L++) {
-        stats = levelUp(cfg, stats, ind.talent, ind.growth, L, ind.personality, rng);
+        stats = levelUp(cfg, stats, ind.talent, ind.growth, L, ind.personality, rng, family: c['family'] as String?);
         final expected = (hist[L - 1] as List).cast<num>();
         final actual = _arr(stats);
         for (var i = 0; i < kStats.length; i++) {

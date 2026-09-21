@@ -18,7 +18,7 @@ from typing import Optional
 ROOT = Path(__file__).resolve().parents[1]
 CFG_DIR = ROOT / "shared-config"
 
-STATS = ["hp", "atk", "def", "spa", "spd", "luk"]
+STATS = ["hp", "atk", "def", "spa", "sdf", "spd", "luk"]
 MASK = 0xFFFFFFFF
 
 
@@ -28,6 +28,7 @@ def load_json(name: str):
 
 C = load_json("constants.json")
 PERSONALITIES = load_json("personalities.json")
+FAMILIES = {k: v for k, v in load_json("families.json").items() if not k.startswith("_")}
 GROWTH_TYPES: list[str] = C["growthTypeOrder"]
 
 
@@ -119,12 +120,14 @@ def roll_growth(bst0: int, u: float) -> str:
     return GROWTH_TYPES[-1]
 
 
-def roll_individual(rng: XorShift128, mentor_talent: Optional[dict] = None, use_capsule: bool = False) -> dict:
+def roll_individual(rng: XorShift128, mentor_talent: Optional[dict] = None, use_capsule: bool = False, family: Optional[str] = None) -> dict:
+    """family を渡すと families.json の baseBias を初期値に足す（素質の計算には使わない。乱数は消費しない）。"""
+    bias = FAMILIES[family]["baseBias"] if family else None
     base, talent = {}, {}
     for s in STATS:
         rb = rng.rand_int(*C["baseStatRange"])
         rt = rng.rand_int(*C["talentRange"])
-        base[s] = rb
+        base[s] = max(1, rb + bias[s]) if bias else rb
         talent[s] = talent_from_raw(rb, rt)
     if mentor_talent is not None:
         rate = C["mentorInheritRateCapsule"] if use_capsule else C["mentorInheritRate"]
@@ -147,13 +150,14 @@ def roll_individual(rng: XorShift128, mentor_talent: Optional[dict] = None, use_
 
 
 # ---------------------------------------------------------------- 成長
-def level_up(stats: dict, talent: dict, growth: str, level: int, personality: int, rng: XorShift128) -> dict:
-    """level → level+1 のレベルアップ後ステータス。stats は現在値（float）。"""
+def level_up(stats: dict, talent: dict, growth: str, level: int, personality: int, rng: XorShift128, family: Optional[str] = None) -> dict:
+    """level → level+1 のレベルアップ後ステータス。stats は現在値（float）。family を渡すと gainMod を掛ける。"""
     mods = PERSONALITIES[personality]["levelGainMod"]
+    fmods = FAMILIES[family]["gainMod"] if family else None
     out = {}
     for s in STATS:
         r = rng.rand_range(*C["levelGainRandRange"])
-        gain = (C["levelGainBase"] + C["levelGainPerTalent"] * talent[s]) * curve(growth, level) * mods[s] * r
+        gain = (C["levelGainBase"] + C["levelGainPerTalent"] * talent[s]) * curve(growth, level) * mods[s] * (fmods[s] if fmods else 1.0) * r
         out[s] = min(stat_cap(talent[s]), stats[s] + gain)
     return out
 

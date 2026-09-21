@@ -65,32 +65,34 @@ def build() -> dict:
 
     # 5. 個体生成（師匠なし／あり）
     fx["individuals"] = []
+    fams = [None] * 6 + ["metal", "spark", "ghost", "food", "rock", "enigma"]
     for i in range(12):
         sh = seed(f"ind-{i}")
-        fx["individuals"].append({"seedHex": sh, "mentorTalent": None, "useCapsule": False,
-                                  "expected": G.roll_individual(G.XorShift128(sh))})
-    mentor = {"hp": 10, "atk": 7, "def": 3, "spa": 9, "spd": 5, "luk": 1}
+        fx["individuals"].append({"seedHex": sh, "mentorTalent": None, "useCapsule": False, "family": fams[i],
+                                  "expected": G.roll_individual(G.XorShift128(sh), None, False, fams[i])})
+    mentor = {"hp": 10, "atk": 7, "def": 3, "spa": 9, "sdf": 6, "spd": 5, "luk": 1}
     for i, cap in enumerate([False, True]):
         sh = seed(f"ind-mentor-{i}")
-        fx["individuals"].append({"seedHex": sh, "mentorTalent": mentor, "useCapsule": cap,
-                                  "expected": G.roll_individual(G.XorShift128(sh), mentor, cap)})
+        fx["individuals"].append({"seedHex": sh, "mentorTalent": mentor, "useCapsule": cap, "family": "beast",
+                                  "expected": G.roll_individual(G.XorShift128(sh), mentor, cap, "beast")})
 
     # 6. レベルアップ Lv1→50 の全履歴
     fx["levelUps"] = []
+    lv_fams = [None, None, None, "plant", "paper", "toy"]
     for i in range(6):
         sh = seed(f"lv-{i}")
         r = G.XorShift128(sh)
-        ind = G.roll_individual(r)
+        ind = G.roll_individual(r, None, False, lv_fams[i])
         stats = {s: float(v) for s, v in ind["base"].items()}
         hist = []
         for L in range(1, G.C["levelCap"]):
-            stats = G.level_up(stats, ind["talent"], ind["growth"], L, ind["personality"], r)
+            stats = G.level_up(stats, ind["talent"], ind["growth"], L, ind["personality"], r, lv_fams[i])
             hist.append([stats[s] for s in G.STATS])
-        fx["levelUps"].append({"seedHex": sh, "individual": ind, "statsByLevel": hist})
+        fx["levelUps"].append({"seedHex": sh, "family": lv_fams[i], "individual": ind, "statsByLevel": hist})
 
     # 7. トレーニング
     fx["training"] = []
-    for i, ttype in enumerate(["dash", "labor", "meditate", "endure", "dash", "meditate"]):
+    for i, ttype in enumerate(["dash", "labor", "meditate", "endure", "dash", "meditate", "ukemi"]):
         sh = seed(f"tr-{i}")
         r = G.XorShift128(sh)
         ind = G.roll_individual(r)

@@ -1,7 +1,7 @@
 // setPartner / useItem / rest（企画書 §11, §5.3, §5.4）
 import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
-import { loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
+import { fillStats, loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { jstDateKey } from "../shared/jst";
 import { grantExp, levelUpMovesUpdate } from "./progress";
 
@@ -82,11 +82,12 @@ export async function useItemCore(db: Firestore, uid: string, monsterId: string,
           seed: pr.seed as string,
           level,
           exp,
-          stats: p.stats as Stats,
-          talent: pr.talent as StatsInt,
+          stats: fillStats(p.stats as Record<string, unknown>),
+          talent: fillStats(pr.talent as Record<string, unknown>) as StatsInt,
           growth: pr.growth as GrowthType,
           personality: p.personality as number,
           statHistory: (p.statHistory as { level: number; stats: Stats }[]) ?? [],
+          family: p.family as string,
         },
         C.expPerFood as number,
       );

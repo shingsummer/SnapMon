@@ -5,7 +5,7 @@
 import { randomBytes } from "node:crypto";
 import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
-import { loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
+import { fillStats, loadConfig, type GrowthType, type Stats, type StatsInt } from "../shared/config";
 import { jstDateKey } from "../shared/jst";
 import { grantExp, levelUpMovesUpdate } from "../monster/progress";
 import { rollMurmur } from "../murmur/murmur";
@@ -172,11 +172,12 @@ export async function startBattleCore(
           seed: pr.seed as string,
           level: p.level as number,
           exp: p.exp as number,
-          stats: p.stats as Stats,
-          talent: pr.talent as StatsInt,
+          stats: fillStats(p.stats as Record<string, unknown>),
+          talent: fillStats(pr.talent as Record<string, unknown>) as StatsInt,
           growth: pr.growth as GrowthType,
           personality: p.personality as number,
           statHistory: (p.statHistory as { level: number; stats: Stats }[]) ?? [],
+          family: p.family as string,
         },
         expPer,
       );

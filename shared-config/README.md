@@ -32,8 +32,9 @@ Functions（TypeScript）と app（Dart）の両方が読む静的マスタ。**
 
 ## 乱数の呼び出し順（変えるとフィクスチャが壊れる）
 
-- **個体生成**: ステータス順 `hp, atk, def, spa, spd, luk` で `randInt(base)`, `randInt(talent)` を交互 → `nextDouble()`（成長タイプ）→ `randInt(0,7)`（性格）→ `randRange(murmurRate)` → `randInt(-jitter, +jitter)`
+- **個体生成**: ステータス順 `hp, atk, def, spa, sdf, spd, luk`（7 種、P6 で特防 sdf を追加）で `randInt(base)`, `randInt(talent)` を交互 → `nextDouble()`（成長タイプ）→ `randInt(0,7)`（性格）→ `randRange(murmurRate)` → `randInt(-jitter, +jitter)`
 - **レベルアップ**: ステータス順に `randRange(0.8, 1.2)` を 1 回ずつ
+- ファミリー傾向（`families.json` の baseBias / gainMod）は乱数を消費しない。初期値は rand(5,60)+baseBias（1 未満は 1）、素質の計算には bias を入れない。レベルアップ上昇量に gainMod を掛ける
 - **トレーニング**: `randRange(2, 4)` を 1 回
 
 ## 成長式（企画書 §4.3〜4.5、§5.3）

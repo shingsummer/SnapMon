@@ -113,7 +113,7 @@ describe("generateMonsterCore", () => {
     await mentorRef.set({ ownerId: uid, level: 50, isMentor: true, mentorMoveId: "beast_bite", inheritedMove: null, mentorUsed: false });
     await db.collection("monsters_private").doc(mentorRef.id).set({
       ownerId: uid,
-      talent: { hp: 10, atk: 10, def: 10, spa: 10, spd: 10, luk: 10 },
+      talent: { hp: 10, atk: 10, def: 10, spa: 10, sdf: 10, spd: 10, luk: 10 },
       growth: "avg",
     });
     await db.collection("users").doc(uid).set({ pendingDisciple: { mentorId: mentorRef.id, useCapsule: false } });

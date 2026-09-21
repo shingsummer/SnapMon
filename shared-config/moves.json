@@ -141,7 +141,8 @@
       "category": "support",
       "power": 0,
       "effect": {
-        "defStages": 1
+        "defStages": 1,
+        "sdfStages": 1
       }
     },
     {
@@ -433,7 +434,7 @@
       "category": "special",
       "power": 160,
       "effect": {
-        "atkStagesTarget": -1
+        "sdfStagesTarget": -1
       }
     },
     {
@@ -751,7 +752,8 @@
       "effect": {
         "spaStages": 1,
         "atkStages": 1,
-        "defStages": -1
+        "defStages": -1,
+        "sdfStages": -1
       }
     },
     {
@@ -853,7 +855,7 @@
       "category": "support",
       "power": 0,
       "effect": {
-        "defStages": 1
+        "sdfStages": 1
       }
     },
     {

@@ -27,12 +27,12 @@ interface Made {
 
 /** 成長式どおりに Lv `level` の個体を作る。moveSlots: 技の数（現状 2、Lv10/20 習得を入れると 4） */
 function makeMonster(rng: XorShift128, level: number, moveSlots: number, name: string): Made {
-  const ind = rollIndividual(new XorShift128(hexSeed(rng)));
-  let stats = {} as Stats;
-  for (const s of STATS) stats[s] = ind.base[s];
-  for (let L = 1; L < level; L++) stats = levelUp(stats, ind.talent, ind.growth, L, ind.personality, new XorShift128(hexSeed(rng)));
   const family = FAMILIES[rng.randInt(0, FAMILIES.length - 1)];
   const element = ELEMENTS[rng.randInt(0, ELEMENTS.length - 1)];
+  const ind = rollIndividual(new XorShift128(hexSeed(rng)), null, false, family);
+  let stats = {} as Stats;
+  for (const s of STATS) stats[s] = ind.base[s];
+  for (let L = 1; L < level; L++) stats = levelUp(stats, ind.talent, ind.growth, L, ind.personality, new XorShift128(hexSeed(rng)), family);
   const moves = pickInitialMoves(new XorShift128(hexSeed(rng)), family, null, element);
   if (moveSlots > 2) {
     const pool = loadMovesFile().moves.filter((m) => (m.family === family || (m.family === null && m.element === element)) && !moves.includes(m.id));

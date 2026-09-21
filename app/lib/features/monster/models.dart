@@ -25,8 +25,8 @@ const elementJa = <String, String>{
   'neutral': '無',
 };
 
-const statOrder = ['hp', 'atk', 'def', 'spa', 'spd', 'luk'];
-const statJa = <String, String>{'hp': '体力', 'atk': '攻撃', 'def': '防御', 'spa': '特攻', 'spd': '速さ', 'luk': '運'};
+const statOrder = ['hp', 'atk', 'def', 'spa', 'sdf', 'spd', 'luk'];
+const statJa = <String, String>{'hp': '体力', 'atk': '攻撃', 'def': '防御', 'spa': '特攻', 'sdf': '特防', 'spd': '速さ', 'luk': '運'};
 
 /// トレーニング種別（shared-config/constants.json の trainings と対応）
 const trainingJa = <String, ({String name, String main, String sub, String fatigue})>{
@@ -34,10 +34,12 @@ const trainingJa = <String, ({String name, String main, String sub, String fatig
   'labor': (name: '力仕事', main: 'atk', sub: 'hp', fatigue: '高'),
   'meditate': (name: '瞑想', main: 'spa', sub: 'luk', fatigue: '低'),
   'endure': (name: '耐久', main: 'def', sub: 'hp', fatigue: '高'),
+  'ukemi': (name: '受け身', main: 'sdf', sub: 'hp', fatigue: '中'),
 };
 
 Map<String, int> _intStats(Map<dynamic, dynamic>? m) =>
-    {for (final s in statOrder) s: ((m?[s] as num?) ?? 0).round()};
+    // 特防 sdf を持たない旧データは防御の値で補う
+    {for (final s in statOrder) s: ((m?[s] as num?) ?? (s == 'sdf' ? (m?['def'] as num?) : null) ?? 0).round()};
 
 /// 端末側で適用する個体差（企画書 §3.6）
 class ArtTint {

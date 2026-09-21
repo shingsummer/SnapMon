@@ -1,7 +1,7 @@
 // train（企画書 §11, §5.3, §4.5）: VP・回数・疲労チェック → 上昇 → 経験値 → 保存 → つぶやき。
 import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
-import { STATS, loadConfig, type GrowthType, type Stats, type StatsInt, type TrainingType } from "../shared/config";
+import { fillStats, STATS, loadConfig, type GrowthType, type Stats, type StatsInt, type TrainingType } from "../shared/config";
 import { statCap, train as applyTraining } from "../shared/growth";
 import { jstDateKey } from "../shared/jst";
 import { XorShift128, seedFromParts } from "../shared/rng";
@@ -66,8 +66,8 @@ export async function trainCore(deps: TrainDeps, uid: string, monsterId: string,
 
     const p = pub.data() as Record<string, unknown>;
     const pr = priv.data() as Record<string, unknown>;
-    const stats = p.stats as Stats;
-    const talent = pr.talent as StatsInt;
+    const stats = fillStats(p.stats as Record<string, unknown>);
+    const talent = fillStats(pr.talent as Record<string, unknown>) as StatsInt;
     const fatigue = (p.fatigue as number | undefined) ?? 0;
     const trainingCount = (p.trainingCount as number | undefined) ?? 0;
 
@@ -108,6 +108,7 @@ export async function trainCore(deps: TrainDeps, uid: string, monsterId: string,
         growth: pr.growth as GrowthType,
         personality: p.personality as number,
         statHistory: (p.statHistory as { level: number; stats: Stats }[]) ?? [],
+        family: p.family as string,
       },
       C.expPerTraining as number,
     );
@@ -165,5 +166,5 @@ export async function trainCore(deps: TrainDeps, uid: string, monsterId: string,
 }
 
 function zeroStats(): Stats {
-  return { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, luk: 0 };
+  return Object.fromEntries(STATS.map((s) => [s, 0])) as Stats;
 }

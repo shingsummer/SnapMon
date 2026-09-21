@@ -6,7 +6,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { Element, Family } from "../generate/classify";
-import { STATS, configDir, loadConfig, type Stat, type Stats } from "../shared/config";
+import { STATS, configDir, fillStats, loadConfig, type Stat, type Stats } from "../shared/config";
 import { XorShift128 } from "../shared/rng";
 
 export interface MoveDef {
@@ -78,7 +78,7 @@ export interface BattleResult {
   turnsTotal: number;
 }
 
-type StageKey = "atk" | "def" | "spa" | "spd" | "luk" | "evasion" | "accuracy";
+type StageKey = "atk" | "def" | "spa" | "sdf" | "spd" | "luk" | "evasion" | "accuracy";
 
 interface Fighter {
   side: Side;
@@ -97,7 +97,7 @@ function newFighter(side: Side, index: number, c: Combatant): Fighter {
     index,
     c,
     hp: Math.max(1, Math.round(c.stats.hp)),
-    stages: { atk: 0, def: 0, spa: 0, spd: 0, luk: 0, evasion: 0, accuracy: 0 },
+    stages: { atk: 0, def: 0, spa: 0, sdf: 0, spd: 0, luk: 0, evasion: 0, accuracy: 0 },
     sleep: 0,
     paralyzed: false,
     lastHealTurn: -99,
@@ -140,10 +140,11 @@ function baseDamage(user: Fighter, target: Fighter, m: MoveDef): number {
   const lf = C.battleLevelFactorBase as number;
   // 段階補正（バフ・デバフ）は比率の中に入れず最終ダメージに掛ける。
   // 比率形だと攻撃 1.5 倍がダメージ +20% にしかならず、1 ターン使ってバフする価値が無くなるため（sim で確認）。
+  // 物理: 攻撃/相手の防御、特殊: 特攻/相手の特防（P6 で特防を独立させた）
   const atk = m.category === "physical" ? user.c.stats.atk : user.c.stats.spa;
-  const def = m.category === "physical" ? target.c.stats.def : target.c.stats.spa;
+  const def = m.category === "physical" ? target.c.stats.def : target.c.stats.sdf;
   const atkStage = m.category === "physical" ? user.stages.atk : user.stages.spa;
-  const defStage = m.category === "physical" ? target.stages.def : target.stages.spa;
+  const defStage = m.category === "physical" ? target.stages.def : target.stages.sdf;
   const ratio = atk / Math.max(1, atk + def);
   const exp = (C.battleRatioExponent as number | undefined) ?? 1;
   const levelFactor = (lf + user.c.level) / (lf + 50);
@@ -356,9 +357,9 @@ export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combata
   }
 
   function applyStages(user: Fighter, target: Fighter, e: Record<string, number | boolean>, turn: number): void {
-    const selfKeys: Record<string, StageKey> = { atkStages: "atk", defStages: "def", spaStages: "spa", spdStages: "spd", luckStages: "luk", evasionStages: "evasion" };
-    const targetKeys: Record<string, StageKey> = { atkStagesTarget: "atk", defStagesTarget: "def", spdStagesTarget: "spd", accuracyStagesTarget: "accuracy" };
-    const label: Record<StageKey, string> = { atk: "攻撃", def: "防御", spa: "特攻", spd: "速さ", luk: "運", evasion: "回避", accuracy: "命中" };
+    const selfKeys: Record<string, StageKey> = { atkStages: "atk", defStages: "def", spaStages: "spa", sdfStages: "sdf", spdStages: "spd", luckStages: "luk", evasionStages: "evasion" };
+    const targetKeys: Record<string, StageKey> = { atkStagesTarget: "atk", defStagesTarget: "def", sdfStagesTarget: "sdf", spdStagesTarget: "spd", accuracyStagesTarget: "accuracy" };
+    const label: Record<StageKey, string> = { atk: "攻撃", def: "防御", spa: "特攻", sdf: "特防", spd: "速さ", luk: "運", evasion: "回避", accuracy: "命中" };
     for (const [k, stat] of Object.entries(selfKeys)) {
       const v = e[k];
       if (typeof v !== "number" || v === 0) continue;
@@ -378,9 +379,9 @@ export function resolveBattle(seed: string, partyA: Combatant[], partyB: Combata
 
 /** Firestore の monster ドキュメントから Combatant を作る（公開部分のみ） */
 export function combatantFromDoc(id: string, d: Record<string, unknown>): Combatant {
+  const filled = fillStats(d.stats as Record<string, unknown>);
   const stats = {} as Stats;
-  const src = (d.stats as Record<string, number>) ?? {};
-  for (const s of STATS) stats[s] = Number(src[s] ?? 1);
+  for (const s of STATS) stats[s] = Math.max(1, filled[s]);
   const moves = [...(((d.moves as string[]) ?? []).slice(0, 4))];
   const inherited = d.inheritedMove as { moveId: string; generation: number } | null | undefined;
   const moveBonus: Record<string, number> = {};

@@ -1,0 +1,15 @@
+{
+  "_doc": "ファミリーごとのステータス傾向（企画書 §3.2「基本傾向」の数値化。ポケモンの種族値に相当）。baseBias は初期値の乱数 rand(5,60) に足す量（結果は 1 以上に切り上げ、素質の計算には使わない）。gainMod はレベルアップ上昇量に掛ける倍率（性格補正と同様）。各ファミリーの baseBias 合計は 0 付近にして BST0（成長タイプ抽選）に偏りを出さない。",
+  "beast":  { "baseBias": { "hp": 0,   "atk": 10, "def": -5, "spa": -5, "sdf": -5, "spd": 10, "luk": 0 },  "gainMod": { "hp": 1.0,  "atk": 1.1,  "def": 0.95, "spa": 0.95, "sdf": 0.95, "spd": 1.1,  "luk": 1.0 } },
+  "plant":  { "baseBias": { "hp": 12,  "atk": -5, "def": 0,  "spa": 0,  "sdf": 5,  "spd": -10, "luk": 0 }, "gainMod": { "hp": 1.15, "atk": 0.95, "def": 1.0,  "spa": 1.0,  "sdf": 1.05, "spd": 0.9,  "luk": 1.0 } },
+  "metal":  { "baseBias": { "hp": 0,   "atk": 5,  "def": 15, "spa": -5, "sdf": 5,  "spd": -12, "luk": -5 }, "gainMod": { "hp": 1.0,  "atk": 1.0,  "def": 1.15, "spa": 0.95, "sdf": 1.05, "spd": 0.9,  "luk": 0.95 } },
+  "aqua":   { "baseBias": { "hp": 0,   "atk": 0,  "def": 0,  "spa": 0,  "sdf": 0,  "spd": 0,   "luk": 0 },  "gainMod": { "hp": 1.0,  "atk": 1.0,  "def": 1.0,  "spa": 1.0,  "sdf": 1.0,  "spd": 1.0,  "luk": 1.0 } },
+  "rock":   { "baseBias": { "hp": 10,  "atk": 5,  "def": 12, "spa": -8, "sdf": 0,  "spd": -15, "luk": -5 }, "gainMod": { "hp": 1.1,  "atk": 1.0,  "def": 1.1,  "spa": 0.95, "sdf": 1.0,  "spd": 0.85, "luk": 1.0 } },
+  "spark":  { "baseBias": { "hp": -5,  "atk": 0,  "def": -8, "spa": 10, "sdf": -5, "spd": 12,  "luk": 0 },  "gainMod": { "hp": 0.95, "atk": 1.0,  "def": 0.95, "spa": 1.1,  "sdf": 0.95, "spd": 1.1,  "luk": 1.0 } },
+  "ghost":  { "baseBias": { "hp": -8,  "atk": -5, "def": -8, "spa": 12, "sdf": 5,  "spd": 5,   "luk": 0 },  "gainMod": { "hp": 0.9,  "atk": 0.95, "def": 0.9,  "spa": 1.15, "sdf": 1.05, "spd": 1.05, "luk": 1.0 } },
+  "food":   { "baseBias": { "hp": 12,  "atk": 0,  "def": 0,  "spa": -5, "sdf": 0,  "spd": -10, "luk": 10 }, "gainMod": { "hp": 1.1,  "atk": 1.0,  "def": 1.0,  "spa": 0.95, "sdf": 1.0,  "spd": 0.9,  "luk": 1.1 } },
+  "paper":  { "baseBias": { "hp": -8,  "atk": -5, "def": -8, "spa": 8,  "sdf": 8,  "spd": 5,   "luk": 0 },  "gainMod": { "hp": 0.9,  "atk": 0.95, "def": 0.9,  "spa": 1.1,  "sdf": 1.1,  "spd": 1.05, "luk": 1.0 } },
+  "cloth":  { "baseBias": { "hp": 0,   "atk": -5, "def": 0,  "spa": 0,  "sdf": 5,  "spd": 8,   "luk": 0 },  "gainMod": { "hp": 1.0,  "atk": 0.95, "def": 1.0,  "spa": 1.0,  "sdf": 1.05, "spd": 1.1,  "luk": 1.0 } },
+  "toy":    { "baseBias": { "hp": 0,   "atk": 5,  "def": -5, "spa": 0,  "sdf": -5, "spd": 0,   "luk": 12 }, "gainMod": { "hp": 1.0,  "atk": 1.0,  "def": 0.95, "spa": 1.0,  "sdf": 0.95, "spd": 1.0,  "luk": 1.15 } },
+  "enigma": { "baseBias": { "hp": 0,   "atk": 0,  "def": 0,  "spa": 0,  "sdf": 0,  "spd": 0,   "luk": 0 },  "gainMod": { "hp": 1.0,  "atk": 1.0,  "def": 1.0,  "spa": 1.0,  "sdf": 1.0,  "spd": 1.0,  "luk": 1.0 } }
+}

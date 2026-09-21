@@ -48,14 +48,16 @@ export function rollGrowth(bst0: number, u: number): GrowthType {
   return C.growthTypeOrder[C.growthTypeOrder.length - 1];
 }
 
-export function rollIndividual(rng: XorShift128, mentorTalent: StatsInt | null = null, useCapsule = false): Individual {
-  const { constants: C, personalities } = loadConfig();
+/** family を渡すと families.json の baseBias を初期値に足す（素質の計算には使わない。乱数は消費しない） */
+export function rollIndividual(rng: XorShift128, mentorTalent: StatsInt | null = null, useCapsule = false, family: string | null = null): Individual {
+  const { constants: C, personalities, families } = loadConfig();
+  const bias = family ? families[family]?.baseBias : undefined;
   const base = {} as StatsInt;
   const talent = {} as StatsInt;
   for (const s of STATS) {
     const rb = rng.randInt(C.baseStatRange[0], C.baseStatRange[1]);
     const rt = rng.randInt(C.talentRange[0], C.talentRange[1]);
-    base[s] = rb;
+    base[s] = bias ? Math.max(1, rb + bias[s]) : rb;
     talent[s] = talentFromRaw(rb, rt);
   }
   if (mentorTalent) {
@@ -74,13 +76,15 @@ export function rollIndividual(rng: XorShift128, mentorTalent: StatsInt | null =
 }
 
 /** level → level+1 のレベルアップ後ステータス */
-export function levelUp(stats: Stats, talent: StatsInt, growth: GrowthType, level: number, personality: number, rng: XorShift128): Stats {
-  const { constants: C, personalities } = loadConfig();
+/** family を渡すと families.json の gainMod を上昇量に掛ける */
+export function levelUp(stats: Stats, talent: StatsInt, growth: GrowthType, level: number, personality: number, rng: XorShift128, family: string | null = null): Stats {
+  const { constants: C, personalities, families } = loadConfig();
   const mods = personalities[personality].levelGainMod;
+  const fmods = family ? families[family]?.gainMod : undefined;
   const out = {} as Stats;
   for (const s of STATS) {
     const r = rng.randRange(C.levelGainRandRange[0], C.levelGainRandRange[1]);
-    const gain = (C.levelGainBase + C.levelGainPerTalent * talent[s]) * curve(growth, level) * mods[s] * r;
+    const gain = (C.levelGainBase + C.levelGainPerTalent * talent[s]) * curve(growth, level) * mods[s] * (fmods ? fmods[s] : 1) * r;
     out[s] = Math.min(statCap(talent[s]), stats[s] + gain);
   }
   return out;

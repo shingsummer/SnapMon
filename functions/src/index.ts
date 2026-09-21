@@ -162,7 +162,7 @@ export const submitSteps = onCall({ enforceAppCheck: !IS_EMULATOR }, async (requ
 });
 
 // ---------------------------------------------------------------- train（§5.3）
-const TrainInput = z.object({ monsterId: z.string().min(1).max(64), type: z.enum(["dash", "labor", "meditate", "endure"]) });
+const TrainInput = z.object({ monsterId: z.string().min(1).max(64), type: z.enum(["dash", "labor", "meditate", "endure", "ukemi"]) });
 
 export const train = onCall({ enforceAppCheck: !IS_EMULATOR }, async (request) => {
   const uid = requireUid(request);

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "shared-config" / "moves.json"
 
 # (id, 名前, category, power, effect)
-# category: physical(ATK/DEF) / special(SPA/SPA) / support
+# category: physical(ATK/DEF) / special(SPA/SDF) / support
 FAMILY_MOVES = {
     "beast": [
         ("beast_bite", "かみつき", "physical", 200, None),
@@ -29,7 +29,7 @@ FAMILY_MOVES = {
         ("plant_heal", "こうごうせい", "support", 0, {"healRatio": 0.25}),
         ("plant_vine", "つるでしばる", "physical", 170, {"spdStagesTarget": -1}),
         ("plant_seed", "たねばくだん", "special", 210, None),
-        ("plant_root", "ねをはる", "support", 0, {"defStages": 1}),
+        ("plant_root", "ねをはる", "support", 0, {"defStages": 1, "sdfStages": 1}),
         ("plant_spore", "ねむりこな", "special", 150, {"sleepChance": 0.3}),
     ],
     "metal": [
@@ -67,7 +67,7 @@ FAMILY_MOVES = {
     "ghost": [
         ("ghost_touch", "ひやりタッチ", "special", 190, None),
         ("ghost_fade", "きえる", "support", 0, {"evasionStages": 1}),
-        ("ghost_curse", "のろい", "special", 160, {"atkStagesTarget": -1}),
+        ("ghost_curse", "のろい", "special", 160, {"sdfStagesTarget": -1}),
         ("ghost_wail", "うらめしや", "special", 220, None),
         ("ghost_drain", "たましいすい", "special", 180, {"drainRatio": 0.5}),
         ("ghost_shadow", "かげうち", "physical", 180, {"priority": 1}),
@@ -107,7 +107,7 @@ FAMILY_MOVES = {
     "enigma": [
         ("enigma_question", "はてな", "special", 200, None),
         ("enigma_mystery", "なぞのちから", "special", 230, {"accuracy": 0.9}),
-        ("enigma_shift", "いれかわり", "support", 0, {"spaStages": 1, "atkStages": 1, "defStages": -1}),
+        ("enigma_shift", "いれかわり", "support", 0, {"spaStages": 1, "atkStages": 1, "defStages": -1, "sdfStages": -1}),
         ("enigma_glitch", "バグる", "physical", 180, {"randomStat": True}),
         ("enigma_blank", "むひょうじょう", "support", 0, {"evasionStages": 1}),
         ("enigma_answer", "こたえ", "physical", 210, {"critBonus": 0.1}),
@@ -124,7 +124,7 @@ ELEMENT_MOVES = {
     "water": [
         ("water_shot", "みずでっぽう", "special", 190, None),
         ("water_stream", "げきりゅう", "special", 220, None),
-        ("water_veil", "みずのまく", "support", 0, {"defStages": 1}),
+        ("water_veil", "みずのまく", "support", 0, {"sdfStages": 1}),
         ("water_drizzle", "こさめ", "special", 160, {"healRatio": 0.1}),
     ],
     "grass": [

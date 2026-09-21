@@ -54,7 +54,7 @@ describe("rollGrowth", () => {
 describe("rollIndividual", () => {
   it("matches reference, with and without mentor", () => {
     for (const c of fx.individuals) {
-      const ind = rollIndividual(new XorShift128(c.seedHex), c.mentorTalent, c.useCapsule);
+      const ind = rollIndividual(new XorShift128(c.seedHex), c.mentorTalent, c.useCapsule, c.family ?? null);
       expect(ind.base).toEqual(c.expected.base);
       expect(ind.talent).toEqual(c.expected.talent);
       expect(ind.growth).toBe(c.expected.growth);
@@ -70,10 +70,10 @@ describe("levelUp Lv1->50", () => {
     const { constants: C } = loadConfig();
     for (const c of fx.levelUps) {
       const rng = new XorShift128(c.seedHex);
-      const ind = rollIndividual(rng);
+      const ind = rollIndividual(rng, null, false, c.family ?? null);
       let stats = { ...ind.base };
       for (let L = 1; L < C.levelCap; L++) {
-        stats = levelUp(stats, ind.talent, ind.growth, L, ind.personality, rng);
+        stats = levelUp(stats, ind.talent, ind.growth, L, ind.personality, rng, c.family ?? null);
         const expected: number[] = c.statsByLevel[L - 1];
         toArr(stats).forEach((v, i) => expect(Math.abs(v - expected[i])).toBeLessThan(EPS));
       }

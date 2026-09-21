@@ -122,7 +122,8 @@
       "main": "def",
       "sub": "hp",
       "fatigue": 40
-    }
+    },
+    "ukemi": {"main": "sdf", "sub": "hp", "fatigue": 25}
   },
   "expBase": 20,
   "expPerLevel": 4,

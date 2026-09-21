@@ -127,13 +127,13 @@ describe("murmur", () => {
 });
 
 describe("grantExp", () => {
-  const base = { hp: 20, atk: 20, def: 20, spa: 20, spd: 20, luk: 20 };
+  const base = { hp: 20, atk: 20, def: 20, spa: 20, sdf: 20, spd: 20, luk: 20 };
   const m = {
     seed: "0123456789abcdef0123456789abcdef",
     level: 1,
     exp: 0,
     stats: { ...base },
-    talent: { hp: 5, atk: 5, def: 5, spa: 5, spd: 5, luk: 5 },
+    talent: { hp: 5, atk: 5, def: 5, spa: 5, sdf: 5, spd: 5, luk: 5 },
     growth: "avg" as const,
     personality: 0,
     statHistory: [{ level: 1, stats: { ...base } }],
